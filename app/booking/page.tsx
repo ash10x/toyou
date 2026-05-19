@@ -1,11 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import Image from "next/image";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
 
 import { CalendarDays, MapPin, User, Mail, Phone, Check } from "lucide-react";
 
@@ -65,12 +62,7 @@ type InputChange = React.ChangeEvent<HTMLInputElement>;
 type SelectChange = React.ChangeEvent<HTMLSelectElement>;
 
 export default function BookingPage() {
-  const searchParams = useSearchParams();
-
-  const [selectedCar, setSelectedCar] = useState<number>(
-    Number(searchParams.get("carId")) || 1,
-  );
-
+  const [selectedCar, setSelectedCar] = useState<number>(1);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   const [form, setForm] = useState({
@@ -83,20 +75,23 @@ export default function BookingPage() {
     dropoffDate: "",
   });
 
+  // ✅ SAFE: client-only query parsing (no SSR crash)
   useEffect(() => {
-    setForm({
-      fullName: searchParams.get("fullName") || "",
-      email: searchParams.get("email") || "",
-      phone: searchParams.get("phone") || "",
-      pickup: searchParams.get("pickup") || "",
-      dropoff: searchParams.get("dropoff") || "",
-      pickupDate: searchParams.get("pickupDate") || "",
-      dropoffDate: searchParams.get("dropoffDate") || "",
-    });
+    const params = new URLSearchParams(window.location.search);
 
-    const carId = Number(searchParams.get("carId"));
+    const carId = Number(params.get("carId"));
     if (carId) setSelectedCar(carId);
-  }, [searchParams]);
+
+    setForm({
+      fullName: params.get("fullName") || "",
+      email: params.get("email") || "",
+      phone: params.get("phone") || "",
+      pickup: params.get("pickup") || "",
+      dropoff: params.get("dropoff") || "",
+      pickupDate: params.get("pickupDate") || "",
+      dropoffDate: params.get("dropoffDate") || "",
+    });
+  }, []);
 
   const car = useMemo(
     () => cars.find((c) => c.id === selectedCar),
