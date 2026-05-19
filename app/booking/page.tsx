@@ -221,7 +221,6 @@ export default function BookingPage() {
                   value={form.pickup}
                   onChange={(e) => setForm({ ...form, pickup: e.target.value })}
                   options={locations}
-                  placeholder="Pickup Location"
                 />
 
                 <SelectInput
@@ -230,7 +229,6 @@ export default function BookingPage() {
                     setForm({ ...form, dropoff: e.target.value })
                   }
                   options={locations}
-                  placeholder="Dropoff Location"
                 />
 
                 <Input
@@ -271,7 +269,6 @@ export default function BookingPage() {
                     height={200}
                     className="rounded-2xl"
                   />
-
                   <p className="text-xl font-bold">{car.name}</p>
                   <p>${car.price}/day</p>
                 </div>
@@ -283,7 +280,7 @@ export default function BookingPage() {
                   <span>${subtotal}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Fee</span>
+                  <span>Service Fee</span>
                   <span>${serviceFee}</span>
                 </div>
                 <div className="flex justify-between font-bold text-white">
@@ -300,7 +297,10 @@ export default function BookingPage() {
               </button>
 
               {bookingSuccess && (
-                <div className="mt-4 text-green-400">Booking successful ✔</div>
+                <div className="mt-4 text-green-400 flex items-center gap-2">
+                  <Check size={16} />
+                  Booking successful
+                </div>
               )}
             </div>
           </motion.div>
@@ -332,17 +332,15 @@ function Input({
   );
 }
 
-/* SELECT (FIXED) */
+/* SELECT (FIXED - NO PLACEHOLDER PROP) */
 function SelectInput({
   value,
   onChange,
   options,
-  placeholder = "Select",
 }: {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: string[];
-  placeholder?: string;
 }) {
   return (
     <div className="relative">
@@ -355,9 +353,7 @@ function SelectInput({
           value ? "text-black" : "text-gray-500"
         }`}
       >
-        <option value="" disabled>
-          {placeholder}
-        </option>
+        <option value="">Select Location</option>
 
         {options.map((o) => (
           <option key={o} value={o}>
