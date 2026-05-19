@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import Image from "next/image";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -256,13 +258,13 @@ export default function BookingPage() {
             </div>
           )}
 
-          <div className="mt-6 text-sm space-y-2 text-gray-300">
+          <div className="mt-6 space-y-2 text-sm text-gray-300">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>${subtotal}</span>
             </div>
             <div className="flex justify-between">
-              <span>Fee</span>
+              <span>Service Fee</span>
               <span>${serviceFee}</span>
             </div>
             <div className="flex justify-between font-bold text-white">
@@ -340,7 +342,6 @@ function SelectInput({
         }`}
       >
         <option value="">Select Location</option>
-
         {options.map((o) => (
           <option key={o} value={o}>
             {o}
