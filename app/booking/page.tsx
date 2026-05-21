@@ -1,3 +1,7 @@
+/* =========================================
+   app/booking/page.tsx
+========================================= */
+
 "use client";
 
 import Image from "next/image";
@@ -9,7 +13,20 @@ import {
   ComponentType,
 } from "react";
 
-import { CalendarDays, MapPin, User, Mail, Phone, Check } from "lucide-react";
+import { motion } from "framer-motion";
+
+import {
+  CalendarDays,
+  MapPin,
+  User,
+  Mail,
+  Phone,
+  Check,
+  Users,
+  Fuel,
+  CarFront,
+  ShieldCheck,
+} from "lucide-react";
 
 type Car = {
   id: number;
@@ -27,11 +44,13 @@ type SelectChange = ChangeEvent<HTMLSelectElement>;
 
 export default function BookingPage() {
   const [selectedCar, setSelectedCar] = useState<number | null>(null);
+
+  const [prefilledCar, setPrefilledCar] = useState<Car | null>(null);
+
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   const [cars, setCars] = useState<Car[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -43,41 +62,31 @@ export default function BookingPage() {
     dropoffDate: "",
   });
 
-  /* =========================================
-     QUERY PARAMS
-  ========================================= */
+  /* QUERY PARAMS */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
 
-    const carId = Number(params.get("carId"));
+    const incomingCar: Car = {
+      id: Number(params.get("carId")),
+      name: params.get("carName") || "",
+      image: params.get("carImage") || "",
+      price: Number(params.get("carPrice")),
+      transmission: params.get("transmission") || "",
+      body: params.get("body") || "",
+      fuel: params.get("fuel") || "",
+      seats: Number(params.get("seats")),
+    };
 
-    if (!Number.isNaN(carId) && carId > 0) {
-      setSelectedCar(carId);
-    }
-
-    setForm({
-      fullName: params.get("fullName") || "",
-      email: params.get("email") || "",
-      phone: params.get("phone") || "",
-      pickup: params.get("pickup") || "",
-      dropoff: params.get("dropoff") || "",
-      pickupDate: params.get("pickupDate") || "",
-      dropoffDate: params.get("dropoffDate") || "",
-    });
+    setPrefilledCar(incomingCar);
+    setSelectedCar(incomingCar.id);
   }, []);
 
-  /* =========================================
-     FETCH DATA
-  ========================================= */
+  /* FETCH */
   useEffect(() => {
-    let mounted = true;
-
     async function loadData() {
       try {
-        setLoading(true);
-
         const [carsRes, locRes] = await Promise.all([
           fetch("/api/cars"),
           fetch("/api/locations"),
@@ -86,90 +95,51 @@ export default function BookingPage() {
         const carsData = await carsRes.json();
         const locationsData = await locRes.json();
 
-        if (!mounted) return;
-
         if (carsData?.cars) {
           setCars(carsData.cars as Car[]);
-
-          if (!selectedCar && carsData.cars.length > 0) {
-            setSelectedCar(carsData.cars[0].id);
-          }
         }
 
         if (locationsData?.locations) {
           setLocations(locationsData.locations as string[]);
         }
       } catch (error) {
-        console.error("Failed to load booking data:", error);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        console.error("Failed loading booking data:", error);
       }
     }
 
     loadData();
+  }, []);
 
-    return () => {
-      mounted = false;
-    };
-  }, [selectedCar]);
+  const car = useMemo(() => {
+    return cars.find((c) => c.id === selectedCar) || prefilledCar;
+  }, [cars, selectedCar, prefilledCar]);
 
-  /* =========================================
-     SELECTED CAR
-  ========================================= */
-  const car = useMemo(
-    () => cars.find((c) => c.id === selectedCar),
-    [cars, selectedCar],
-  );
-
-  /* =========================================
-     RENTAL DAYS
-  ========================================= */
   const rentalDays = useMemo(() => {
-    if (!form.pickupDate || !form.dropoffDate) {
-      return 1;
-    }
+    if (!form.pickupDate || !form.dropoffDate) return 1;
 
     const pickup = new Date(form.pickupDate);
     const dropoff = new Date(form.dropoffDate);
 
-    if (Number.isNaN(pickup.getTime()) || Number.isNaN(dropoff.getTime())) {
-      return 1;
-    }
+    const diff = (dropoff.getTime() - pickup.getTime()) / (1000 * 60 * 60 * 24);
 
-    const diffMs = dropoff.getTime() - pickup.getTime();
-
-    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-    return days > 0 ? days : 1;
+    return diff > 0 ? Math.ceil(diff) : 1;
   }, [form.pickupDate, form.dropoffDate]);
 
-  /* =========================================
-     TOTALS
-  ========================================= */
   const subtotal = (car?.price || 0) * rentalDays;
   const serviceFee = 10;
   const total = subtotal + serviceFee;
 
-  /* =========================================
-     VALIDATION
-  ========================================= */
-  const isFormValid =
+  const isValid =
     form.fullName &&
     form.email &&
     form.phone &&
     form.pickup &&
     form.dropoff &&
     form.pickupDate &&
-    form.dropoffDate &&
-    car;
+    form.dropoffDate;
 
-  /* =========================================
-     BOOKING
-  ========================================= */
   const handleBooking = () => {
-    if (!isFormValid) return;
+    if (!isValid) return;
 
     setBookingSuccess(true);
 
@@ -179,65 +149,69 @@ export default function BookingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pt-32">
-      {/* HERO */}
-      <section className="pb-10 text-center">
-        <h1 className="text-5xl font-black">Complete Your Booking</h1>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#f7f7f7] via-white to-[#f3f3f3] pt-32">
+      {/* BACKGROUND */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 left-0 h-[30rem] w-[30rem] rounded-full bg-red-600/10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[30rem] w-[30rem] rounded-full bg-black/10 blur-3xl" />
+      </div>
 
-        <p className="mt-3 text-gray-600">
-          Secure your premium rental vehicle in just a few steps.
-        </p>
+      {/* HERO */}
+      <section className="relative pb-12 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 35 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-red-600/20 bg-red-600/10 px-5 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-red-600 backdrop-blur">
+            <ShieldCheck size={15} />
+            Secure Reservation
+          </div>
+
+          <h1 className="mt-6 text-5xl font-black tracking-tight text-black md:text-6xl">
+            Complete Your Booking
+          </h1>
+
+          <p className="mt-4 text-lg text-gray-600">
+            Finalize your luxury vehicle reservation in minutes.
+          </p>
+        </motion.div>
       </section>
 
       {/* CONTENT */}
-      <section className="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <section className="relative mx-auto grid max-w-7xl gap-10 px-6 pb-24 lg:grid-cols-[1.15fr_0.85fr]">
         {/* LEFT */}
         <div className="space-y-8">
-          {/* VEHICLES */}
-          <div className="rounded-2xl bg-white p-6 shadow">
-            <h2 className="text-xl font-bold">Choose Vehicle</h2>
+          {/* PROGRESS */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[2rem] border border-white/40 bg-white/70 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.05)] backdrop-blur-xl"
+          >
+            <div className="flex items-center justify-between">
+              {["Vehicle", "Customer", "Confirm"].map((step, i) => (
+                <div key={step} className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600 font-bold text-white">
+                    {i + 1}
+                  </div>
 
-            {loading ? (
-              <div className="mt-6 text-sm text-gray-500">
-                Loading vehicles...
-              </div>
-            ) : (
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                {cars.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setSelectedCar(c.id)}
-                    className={`rounded-xl border p-3 text-left transition-all ${
-                      selectedCar === c.id
-                        ? "border-red-600 ring-2 ring-red-100"
-                        : "border-black/10 hover:border-black/20"
-                    }`}
-                  >
-                    <Image
-                      src={c.image}
-                      alt={c.name}
-                      width={400}
-                      height={220}
-                      className="h-[200px] w-full rounded-lg object-cover"
-                    />
+                  <span className="font-semibold text-black">{step}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
-                    <div className="mt-3">
-                      <p className="font-bold">{c.name}</p>
+          {/* FORM */}
+          <motion.div
+            initial={{ opacity: 0, y: 35 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rounded-[2rem] border border-white/40 bg-white/70 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.05)] backdrop-blur-xl"
+          >
+            <h2 className="text-2xl font-black text-black">
+              Customer Information
+            </h2>
 
-                      <p className="text-sm text-gray-500">${c.price}/day</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* CUSTOMER */}
-          <div className="rounded-2xl bg-white p-6 shadow">
-            <h2 className="text-xl font-bold">Customer Info</h2>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-8 grid gap-5 md:grid-cols-2">
               <Input
                 icon={User}
                 placeholder="Full Name"
@@ -253,7 +227,6 @@ export default function BookingPage() {
               <Input
                 icon={Mail}
                 placeholder="Email Address"
-                type="email"
                 value={form.email}
                 onChange={(e) =>
                   setForm({
@@ -275,11 +248,11 @@ export default function BookingPage() {
                 }
               />
             </div>
-          </div>
 
-          {/* RENTAL */}
-          <div className="rounded-2xl bg-white p-6 shadow">
-            <h2 className="text-xl font-bold">Rental Details</h2>
+            {/* RENTAL */}
+            <h3 className="mt-12 text-xl font-black text-black">
+              Rental Details
+            </h3>
 
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <SelectInput
@@ -328,85 +301,123 @@ export default function BookingPage() {
                 }
               />
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* RIGHT */}
-        <div className="sticky top-32 h-fit rounded-2xl bg-black p-6 text-white">
-          <h3 className="text-2xl font-black">Booking Summary</h3>
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="sticky top-32 h-fit overflow-hidden rounded-[2rem] border border-white/10 bg-black p-7 text-white shadow-[0_30px_100px_rgba(0,0,0,0.4)]"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_55%)]" />
 
-          {car && (
-            <div className="mt-6">
-              <Image
-                src={car.image}
-                alt={car.name}
-                width={500}
-                height={260}
-                className="h-[220px] w-full rounded-xl object-cover"
-              />
+          <div className="relative">
+            <h3 className="text-3xl font-black">Booking Summary</h3>
 
-              <div className="mt-4">
-                <p className="text-lg font-bold">{car.name}</p>
+            {car && (
+              <>
+                <div className="relative mt-6 overflow-hidden rounded-[1.5rem]">
+                  <Image
+                    src={car.image}
+                    alt={car.name}
+                    width={600}
+                    height={350}
+                    className="h-[240px] w-full object-cover"
+                  />
 
-                <p className="text-sm text-gray-300">${car.price}/day</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+
+                  <div className="absolute bottom-5 left-5">
+                    <p className="text-2xl font-black">{car.name}</p>
+
+                    <p className="mt-1 text-gray-300">${car.price}/day</p>
+                  </div>
+                </div>
+
+                {/* SPECS */}
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  <MiniSpec icon={<Users size={16} />} value={`${car.seats}`} />
+
+                  <MiniSpec
+                    icon={<Fuel size={16} />}
+                    value={String(car.fuel)}
+                  />
+
+                  <MiniSpec
+                    icon={<CarFront size={16} />}
+                    value={String(car.transmission)}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* TOTALS */}
+            <div className="mt-8 space-y-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 backdrop-blur">
+              <div className="flex justify-between text-gray-300">
+                <span>Rental Days</span>
+                <span>{rentalDays}</span>
+              </div>
+
+              <div className="flex justify-between text-gray-300">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between text-gray-300">
+                <span>Service Fee</span>
+                <span>${serviceFee.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between border-t border-white/10 pt-4 text-lg font-bold">
+                <span>Total</span>
+                <span>${total.toFixed(2)}</span>
               </div>
             </div>
-          )}
 
-          <div className="mt-6 space-y-3 border-t border-white/10 pt-6 text-sm">
-            <div className="flex justify-between text-gray-300">
-              <span>Rental Days</span>
-              <span>{rentalDays}</span>
-            </div>
-
-            <div className="flex justify-between text-gray-300">
-              <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between text-gray-300">
-              <span>Service Fee</span>
-              <span>${serviceFee.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleBooking}
-            disabled={!isFormValid}
-            className={`mt-6 w-full rounded-xl py-3 font-semibold transition-all ${
-              isFormValid
-                ? "bg-red-600 hover:bg-red-700"
-                : "cursor-not-allowed bg-gray-700"
-            }`}
-          >
-            Confirm Booking
-          </button>
-
-          {bookingSuccess && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-green-400"
+            {/* CTA */}
+            <button
+              onClick={handleBooking}
+              disabled={!isValid}
+              className={`mt-7 w-full rounded-2xl py-4 text-sm font-semibold transition-all duration-300 ${
+                isValid
+                  ? "bg-red-600 text-white hover:scale-[1.02] hover:bg-red-700 hover:shadow-[0_0_40px_rgba(220,38,38,0.35)]"
+                  : "cursor-not-allowed bg-white/10 text-gray-500"
+              }`}
             >
-              <Check size={18} />
-              Booking successful
-            </motion.div>
-          )}
-        </div>
+              Confirm Reservation
+            </button>
+
+            {/* SUCCESS */}
+            {bookingSuccess && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-6 rounded-2xl border border-green-500/20 bg-green-500/10 p-5 text-green-400"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
+                    <Check size={18} />
+                  </div>
+
+                  <div>
+                    <p className="font-bold">Reservation Confirmed</p>
+
+                    <p className="text-sm text-green-300">
+                      Confirmation email sent successfully.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
       </section>
     </main>
   );
 }
 
-/* =========================================
-   INPUT
-========================================= */
+/* INPUT */
 function Input({
   icon: Icon,
   placeholder,
@@ -414,7 +425,10 @@ function Input({
   value,
   onChange,
 }: {
-  icon: ComponentType<{ className?: string; size?: number }>;
+  icon: ComponentType<{
+    className?: string;
+    size?: number;
+  }>;
   placeholder?: string;
   type?: string;
   value?: string;
@@ -423,7 +437,7 @@ function Input({
   return (
     <div className="relative">
       <Icon
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500"
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
         size={18}
       />
 
@@ -432,15 +446,13 @@ function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full rounded-xl border border-black/10 p-3 pl-10 outline-none transition-all focus:border-red-500"
+        className="w-full rounded-2xl border border-black/5 bg-white/80 p-4 pl-12 outline-none transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
       />
     </div>
   );
 }
 
-/* =========================================
-   SELECT
-========================================= */
+/* SELECT */
 function SelectInput({
   value,
   onChange,
@@ -453,25 +465,37 @@ function SelectInput({
   return (
     <div className="relative">
       <MapPin
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500"
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
         size={18}
       />
 
       <select
         value={value}
         onChange={onChange}
-        className={`w-full rounded-xl border border-black/10 p-3 pl-10 outline-none transition-all focus:border-red-500 ${
-          value ? "text-black" : "text-gray-500"
+        className={`w-full rounded-2xl border border-black/5 bg-white/80 p-4 pl-12 outline-none transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
+          value ? "text-black" : "text-gray-400"
         }`}
       >
         <option value="">Select Location</option>
 
-        {options.map((location) => (
-          <option key={location} value={location}>
-            {location}
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+function MiniSpec({ icon, value }: { icon: React.ReactNode; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur">
+      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-red-600/20 text-red-400">
+        {icon}
+      </div>
+
+      <p className="mt-3 text-xs font-semibold text-white">{value}</p>
     </div>
   );
 }
