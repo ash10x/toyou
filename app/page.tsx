@@ -76,7 +76,7 @@ export default function LandingPage() {
         {/* BACKGROUND */}
         <div className="absolute inset-0">
           <Image
-            src="/hero/car-hero.jpg"
+            src="/images/hero1.jpg"
             alt="Luxury Rental Car"
             fill
             priority
