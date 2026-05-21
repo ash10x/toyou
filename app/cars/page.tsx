@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import {
   Search,
@@ -14,74 +14,51 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-const cars = [
-  {
-    id: 1,
-    name: "BMW X6",
-    image: "/cars/bmw-x6.jpg",
-    price: 120,
-    seats: 5,
-    fuel: "Petrol",
-    body: "SUV",
-    transmission: "Automatic",
-  },
-  {
-    id: 2,
-    name: "Mercedes C300",
-    image: "/cars/benz-c300.jpg",
-    price: 105,
-    seats: 5,
-    fuel: "Petrol",
-    body: "Sedan",
-    transmission: "Automatic",
-  },
-  {
-    id: 3,
-    name: "Toyota Rav4",
-    image: "/cars/rav4.jpg",
-    price: 80,
-    seats: 5,
-    fuel: "Hybrid",
-    body: "SUV",
-    transmission: "Automatic",
-  },
-  {
-    id: 4,
-    name: "Honda Fit",
-    image: "/cars/honda-fit.jpg",
-    price: 55,
-    seats: 5,
-    fuel: "Petrol",
-    body: "Hatchback",
-    transmission: "Automatic",
-  },
-  {
-    id: 5,
-    name: "Range Rover Sport",
-    image: "/cars/range-rover.jpg",
-    price: 180,
-    seats: 7,
-    fuel: "Diesel",
-    body: "SUV",
-    transmission: "Automatic",
-  },
-  {
-    id: 6,
-    name: "Toyota Hiace",
-    image: "/cars/hiace.jpg",
-    price: 140,
-    seats: 12,
-    fuel: "Diesel",
-    body: "Van",
-    transmission: "Manual",
-  },
-];
+type Car = {
+  id: number;
+  name: string;
+  image: string;
+  price: number;
+  seats?: number;
+  fuel?: string;
+  body?: string;
+  transmission?: string;
+};
 
-const bodyTypes = ["All", "SUV", "Sedan", "Hatchback", "Van"];
+const defaultCars: Car[] = [];
 
 export default function InventoryPage() {
   const [search, setSearch] = useState("");
   const [selectedBody, setSelectedBody] = useState("All");
+  const [cars, setCars] = useState<Car[]>(defaultCars);
+  const [bodyTypes, setBodyTypes] = useState<string[]>(["All"]);
+
+  useEffect(() => {
+    async function loadCars() {
+      try {
+        const res = await fetch("/api/cars");
+        const json = await res.json();
+        if (json?.cars) {
+          const carsData = json.cars as Car[];
+          setCars(carsData);
+          const types = Array.from(
+            new Set(
+              carsData
+                .map((c) => c.body)
+                .filter(
+                  (v): v is string => typeof v === "string" && v.length > 0,
+                ),
+            ),
+          );
+          setBodyTypes(["All", ...types]);
+        }
+      } catch (err) {
+        console.error("Failed to load cars", err);
+      }
+    }
+
+    loadCars();
+  }, []);
 
   const filteredCars = useMemo(() => {
     return cars.filter((car) => {
@@ -93,7 +70,7 @@ export default function InventoryPage() {
 
       return matchesSearch && matchesBody;
     });
-  }, [search, selectedBody]);
+  }, [search, selectedBody, cars]);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#fafafa] pt-32">

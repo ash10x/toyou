@@ -6,57 +6,16 @@ import { motion } from "framer-motion";
 
 import { CalendarDays, MapPin, User, Mail, Phone, Check } from "lucide-react";
 
-const cars = [
-  {
-    id: 1,
-    name: "BMW X6",
-    image: "/cars/bmw-x6.jpg",
-    price: 120,
-    seats: 5,
-    fuel: "Petrol",
-    body: "SUV",
-    transmission: "Automatic",
-  },
-  {
-    id: 2,
-    name: "Mercedes C300",
-    image: "/cars/benz-c300.jpg",
-    price: 105,
-    seats: 5,
-    fuel: "Petrol",
-    body: "Sedan",
-    transmission: "Automatic",
-  },
-  {
-    id: 3,
-    name: "Toyota Rav4",
-    image: "/cars/rav4.jpg",
-    price: 80,
-    seats: 5,
-    fuel: "Hybrid",
-    body: "SUV",
-    transmission: "Automatic",
-  },
-  {
-    id: 4,
-    name: "Honda Fit",
-    image: "/cars/honda-fit.jpg",
-    price: 55,
-    seats: 5,
-    fuel: "Petrol",
-    body: "Hatchback",
-    transmission: "Automatic",
-  },
-];
-
-const locations = [
-  "Kingston",
-  "Montego Bay",
-  "Ocho Rios",
-  "Negril",
-  "Mandeville",
-  "Airport Pickup",
-];
+type Car = {
+  id: number;
+  name: string;
+  image: string;
+  price: number;
+  seats?: number;
+  fuel?: string;
+  body?: string;
+  transmission?: string;
+};
 
 type InputChange = React.ChangeEvent<HTMLInputElement>;
 type SelectChange = React.ChangeEvent<HTMLSelectElement>;
@@ -64,6 +23,9 @@ type SelectChange = React.ChangeEvent<HTMLSelectElement>;
 export default function BookingPage() {
   const [selectedCar, setSelectedCar] = useState<number>(1);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+
+  const [cars, setCars] = useState<Car[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -91,6 +53,25 @@ export default function BookingPage() {
       pickupDate: params.get("pickupDate") || "",
       dropoffDate: params.get("dropoffDate") || "",
     });
+  }, []);
+
+  // Fetch cars and locations from our API endpoints
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [carsRes, locRes] = await Promise.all([
+          fetch("/api/cars").then((r) => r.json()),
+          fetch("/api/locations").then((r) => r.json()),
+        ]);
+
+        if (carsRes?.cars) setCars(carsRes.cars as Car[]);
+        if (locRes?.locations) setLocations(locRes.locations as string[]);
+      } catch (err) {
+        console.error("Failed to load cars/locations:", err);
+      }
+    }
+
+    loadData();
   }, []);
 
   const car = useMemo(

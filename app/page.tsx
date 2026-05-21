@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -17,23 +17,9 @@ import {
 
 import { motion } from "framer-motion";
 
-const featuredCars = [
-  {
-    name: "BMW X6",
-    image: "/cars/bmw.jpg",
-    price: "$120/day",
-  },
-  {
-    name: "Mercedes C300",
-    image: "/cars/benz.jpg",
-    price: "$105/day",
-  },
-  {
-    name: "Toyota Rav4",
-    image: "/cars/rav4.jpg",
-    price: "$80/day",
-  },
-];
+type FeaturedCar = { name: string; image: string; price: number };
+
+const defaultFeatured: FeaturedCar[] = [];
 
 const features = [
   {
@@ -65,6 +51,23 @@ export default function LandingPage() {
     pickupDate: "",
     dropoffDate: "",
   });
+
+  const [featuredCars, setFeaturedCars] =
+    useState<FeaturedCar[]>(defaultFeatured);
+
+  useEffect(() => {
+    async function loadFeatured() {
+      try {
+        const res = await fetch("/api/featured-cars");
+        const json = await res.json();
+        if (json?.featured) setFeaturedCars(json.featured as FeaturedCar[]);
+      } catch (err) {
+        console.error("Failed to load featured cars", err);
+      }
+    }
+
+    loadFeatured();
+  }, []);
 
   return (
     <main className="overflow-hidden bg-white">
@@ -361,7 +364,7 @@ export default function LandingPage() {
                     </h3>
 
                     <span className="rounded-full bg-red-100 px-4 py-2 text-sm font-semibold text-red-600">
-                      {car.price}
+                      ${car.price}/day
                     </span>
                   </div>
 

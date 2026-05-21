@@ -1,14 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Car, ShieldCheck, Clock, Users, ArrowRight } from "lucide-react";
 
-const stats = [
-  { label: "Vehicles", value: "50+" },
-  { label: "Happy Customers", value: "1,000+" },
-  { label: "Locations", value: "6" },
+const defaultStats = [
+  { label: "Vehicles", value: "—" },
+  { label: "Happy Customers", value: "—" },
+  { label: "Locations", value: "—" },
   { label: "Support", value: "24/7" },
 ];
 
@@ -36,6 +37,33 @@ const features = [
 ];
 
 export default function AboutPage() {
+  const [stats, setStats] = useState(defaultStats);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/stats");
+        const json = await res.json();
+        if (json?.stats) {
+          const s = json.stats;
+          setStats([
+            { label: "Vehicles", value: `${s.vehicles ?? 0}` },
+            {
+              label: "Happy Customers",
+              value: s.customers ? `${s.customers}+` : "1,000+",
+            },
+            { label: "Locations", value: `${s.locations ?? 0}` },
+            { label: "Support", value: "24/7" },
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to load stats", err);
+      }
+    }
+
+    loadStats();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#fafafa] pt-32">
       {/* HERO */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronDown,
   Search,
@@ -10,58 +10,9 @@ import {
   CarFront,
 } from "lucide-react";
 
-const faqCategories = ["All", "Bookings", "Payments", "Vehicles", "Policies"];
+type FAQ = { id?: number; category: string; question: string; answer: string };
 
-const faqs = [
-  {
-    category: "Bookings",
-    question: "How do I book a rental vehicle?",
-    answer:
-      "You can easily reserve a vehicle through our online booking system by selecting your vehicle, pickup location, dates, and submitting your booking request.",
-  },
-  {
-    category: "Payments",
-    question: "What payment methods do you accept?",
-    answer:
-      "We accept major debit cards, credit cards, bank transfers, and secure online payments for all bookings.",
-  },
-  {
-    category: "Vehicles",
-    question: "Are your vehicles fully insured?",
-    answer:
-      "Yes. All rental vehicles include insurance coverage for your safety and peace of mind during your rental period.",
-  },
-  {
-    category: "Policies",
-    question: "What is your cancellation policy?",
-    answer:
-      "Bookings can be cancelled within the allowed cancellation window. Refund eligibility depends on the booking terms provided during checkout.",
-  },
-  {
-    category: "Bookings",
-    question: "Can I modify my reservation after booking?",
-    answer:
-      "Yes. Reservation updates can be requested through our support team depending on vehicle availability and scheduling.",
-  },
-  {
-    category: "Vehicles",
-    question: "Do you offer luxury and economy vehicles?",
-    answer:
-      "Yes. Our fleet includes luxury sedans, SUVs, economy vehicles, vans, and premium sports vehicles.",
-  },
-  {
-    category: "Policies",
-    question: "Is there a mileage limit on rentals?",
-    answer:
-      "Mileage limits may vary depending on the selected vehicle and rental package. Full details are provided before booking confirmation.",
-  },
-  {
-    category: "Payments",
-    question: "Do I need a security deposit?",
-    answer:
-      "Yes. Some vehicles may require a refundable security deposit before vehicle pickup.",
-  },
-];
+const defaultFaqs: FAQ[] = [];
 
 const supportCards = [
   {
@@ -85,6 +36,35 @@ export default function FAQPage() {
   const [activeIndex, setActiveIndex] = useState<number | null>(0);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const [faqs, setFaqs] = useState<FAQ[]>(defaultFaqs);
+  const [faqCategories, setFaqCategories] = useState<string[]>(["All"]);
+
+  useEffect(() => {
+    async function loadFaqs() {
+      try {
+        const res = await fetch("/api/faqs");
+        const json = await res.json();
+        if (json?.faqs) {
+          const faqsData = json.faqs as FAQ[];
+          setFaqs(faqsData);
+          const cats = Array.from(
+            new Set(
+              faqsData
+                .map((f) => f.category)
+                .filter(
+                  (c): c is string => typeof c === "string" && c.length > 0,
+                ),
+            ),
+          );
+          setFaqCategories(["All", ...cats]);
+        }
+      } catch (err) {
+        console.error("Failed to load faqs", err);
+      }
+    }
+
+    loadFaqs();
+  }, []);
 
   const filteredFaqs = faqs.filter((faq) => {
     const matchesCategory =
