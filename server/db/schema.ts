@@ -39,14 +39,6 @@ export const contact_messages = pgTable("contact_messages", {
   created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  password_hash: text("password_hash").notNull(),
-  is_admin: boolean("is_admin").notNull().default(false),
-});
-
 export const business_info = pgTable("business_info", {
   id: serial("id").primaryKey(),
   phone: text("phone"),

@@ -5,7 +5,6 @@ import {
   contact_messages,
   faqs,
   locations,
-  users,
   bookings,
   business_info,
 } from "./schema";
@@ -67,33 +66,6 @@ export async function getStats() {
   };
 }
 
-// Admin CRUD helpers
-export async function createCar(car: {
-  name: string;
-  image: string;
-  price: number;
-  seats?: number;
-  fuel?: string;
-  body?: string;
-  transmission?: string;
-  featured?: boolean;
-}) {
-  const [created] = await db
-    .insert(cars)
-    .values({
-      name: car.name,
-      image: car.image,
-      price: car.price,
-      seats: car.seats ?? null,
-      fuel: car.fuel ?? null,
-      body: car.body ?? null,
-      transmission: car.transmission ?? null,
-      featured: !!car.featured,
-    })
-    .returning();
-  return created;
-}
-
 export async function createContactMessage(message: {
   name: string;
   email: string;
@@ -108,77 +80,6 @@ export async function createContactMessage(message: {
     })
     .returning();
   return created;
-}
-
-export async function updateCar(
-  id: number,
-  fields: Partial<{
-    name: string;
-    image: string;
-    price: number;
-    seats: number;
-    fuel: string;
-    body: string;
-    transmission: string;
-    featured: boolean;
-  }>,
-) {
-  const [updated] = await db
-    .update(cars)
-    .set({
-      ...(fields.name !== undefined ? { name: fields.name } : {}),
-      ...(fields.image !== undefined ? { image: fields.image } : {}),
-      ...(fields.price !== undefined ? { price: fields.price } : {}),
-      ...(fields.seats !== undefined ? { seats: fields.seats } : {}),
-      ...(fields.fuel !== undefined ? { fuel: fields.fuel } : {}),
-      ...(fields.body !== undefined ? { body: fields.body } : {}),
-      ...(fields.transmission !== undefined
-        ? { transmission: fields.transmission }
-        : {}),
-      ...(fields.featured !== undefined ? { featured: fields.featured } : {}),
-    })
-    .where(eq(cars.id, id))
-    .returning();
-  return updated;
-}
-
-export async function deleteCar(id: number) {
-  await db.delete(cars).where(eq(cars.id, id));
-  return { id };
-}
-
-export async function getUsers() {
-  return await db.select().from(users).orderBy(users.id);
-}
-
-export async function getUserByEmail(email: string) {
-  const rows = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
-  return rows[0] ?? null;
-}
-
-export async function updateUser(
-  id: number,
-  fields: Partial<{ name: string; email: string; is_admin: boolean }>,
-) {
-  const [updated] = await db
-    .update(users)
-    .set({
-      ...(fields.name !== undefined ? { name: fields.name } : {}),
-      ...(fields.email !== undefined ? { email: fields.email } : {}),
-      ...(fields.is_admin !== undefined ? { is_admin: fields.is_admin } : {}),
-    })
-    .where(eq(users.id, id))
-    .returning({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      is_admin: users.is_admin,
-    });
-  return updated;
 }
 
 export async function getBusinessInfo() {
