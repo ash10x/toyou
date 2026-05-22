@@ -82,7 +82,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             {/* BOOK BUTTON */}
             <Link
-              href="/booking"
+              href="/booking?from=nav"
               className="hidden rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-red-700 hover:shadow-[0_0_25px_rgba(220,38,38,0.45)] md:inline-flex"
             >
               Book Now
@@ -139,7 +139,7 @@ export default function Navbar() {
                 transition={{ delay: 0.4 }}
               >
                 <Link
-                  href="/booking"
+                  href="/booking?from=nav"
                   onClick={() => setMobileOpen(false)}
                   className="mt-10 flex items-center justify-center rounded-2xl bg-red-600 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-red-700 hover:shadow-[0_0_30px_rgba(220,38,38,0.45)]"
                 >

@@ -1,6 +1,13 @@
 import { sql, eq } from "drizzle-orm";
 import { db } from "./client";
-import { cars, faqs, locations, users } from "./schema";
+import {
+  cars,
+  contact_messages,
+  faqs,
+  locations,
+  users,
+  bookings,
+} from "./schema";
 
 export async function getCars() {
   return await db.select().from(cars).orderBy(cars.id);
@@ -86,6 +93,22 @@ export async function createCar(car: {
   return created;
 }
 
+export async function createContactMessage(message: {
+  name: string;
+  email: string;
+  message: string;
+}) {
+  const [created] = await db
+    .insert(contact_messages)
+    .values({
+      name: message.name,
+      email: message.email,
+      message: message.message,
+    })
+    .returning();
+  return created;
+}
+
 export async function updateCar(
   id: number,
   fields: Partial<{
@@ -155,4 +178,32 @@ export async function updateUser(
       is_admin: users.is_admin,
     });
   return updated;
+}
+
+export async function createBooking(booking: {
+  car_id: number;
+  full_name: string;
+  email: string;
+  phone: string;
+  pickup_location: string;
+  dropoff_location: string;
+  pickup_date: string;
+  dropoff_date: string;
+  total_price: number;
+}) {
+  const [created] = await db
+    .insert(bookings)
+    .values({
+      car_id: booking.car_id,
+      full_name: booking.full_name,
+      email: booking.email,
+      phone: booking.phone,
+      pickup_location: booking.pickup_location,
+      dropoff_location: booking.dropoff_location,
+      pickup_date: booking.pickup_date,
+      dropoff_date: booking.dropoff_date,
+      total_price: booking.total_price,
+    })
+    .returning();
+  return created;
 }

@@ -4,13 +4,17 @@
 
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import Image from "next/image";
 import {
   useMemo,
   useState,
   useEffect,
+  useRef,
   ChangeEvent,
   ComponentType,
+  ReactNode,
 } from "react";
 
 import { motion } from "framer-motion";
@@ -39,18 +43,20 @@ type Car = {
   transmission?: string;
 };
 
-type InputChange = ChangeEvent<HTMLInputElement>;
-type SelectChange = ChangeEvent<HTMLSelectElement>;
-
 export default function BookingPage() {
   const [selectedCar, setSelectedCar] = useState<number | null>(null);
 
   const [prefilledCar, setPrefilledCar] = useState<Car | null>(null);
+  const [showMiniSlider, setShowMiniSlider] = useState(false);
 
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [cars, setCars] = useState<Car[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
+
+  const timeoutRef = useRef<number | null>(null);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -62,25 +68,44 @@ export default function BookingPage() {
     dropoffDate: "",
   });
 
+  /* CLEANUP */
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   /* QUERY PARAMS */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
 
-    const incomingCar: Car = {
-      id: Number(params.get("carId")),
-      name: params.get("carName") || "",
-      image: params.get("carImage") || "",
-      price: Number(params.get("carPrice")),
-      transmission: params.get("transmission") || "",
-      body: params.get("body") || "",
-      fuel: params.get("fuel") || "",
-      seats: Number(params.get("seats")),
-    };
+    const carId = Number(params.get("carId"));
+
+    const incomingCar: Car | null =
+      !Number.isNaN(carId) && carId > 0
+        ? {
+            id: carId,
+            name: params.get("carName") || "",
+            image: params.get("carImage") || "",
+            price: Number(params.get("carPrice")) || 0,
+            transmission: params.get("transmission") || "",
+            body: params.get("body") || "",
+            fuel: params.get("fuel") || "",
+            seats: Number(params.get("seats")) || 0,
+          }
+        : null;
 
     setPrefilledCar(incomingCar);
-    setSelectedCar(incomingCar.id);
+
+    if (incomingCar) {
+      setSelectedCar(incomingCar.id);
+    }
+
+    setShowMiniSlider(params.get("from") === "nav");
   }, []);
 
   /* FETCH */
@@ -91,6 +116,10 @@ export default function BookingPage() {
           fetch("/api/cars"),
           fetch("/api/locations"),
         ]);
+
+        if (!carsRes.ok || !locRes.ok) {
+          throw new Error("Failed API request");
+        }
 
         const carsData = await carsRes.json();
         const locationsData = await locRes.json();
@@ -110,15 +139,19 @@ export default function BookingPage() {
     loadData();
   }, []);
 
-  const car = useMemo(() => {
+  const car = useMemo<Car | null>(() => {
+    if (selectedCar == null) {
+      return prefilledCar;
+    }
+
     return cars.find((c) => c.id === selectedCar) || prefilledCar;
   }, [cars, selectedCar, prefilledCar]);
 
   const rentalDays = useMemo(() => {
     if (!form.pickupDate || !form.dropoffDate) return 1;
 
-    const pickup = new Date(form.pickupDate);
-    const dropoff = new Date(form.dropoffDate);
+    const pickup = new Date(`${form.pickupDate}T00:00:00`);
+    const dropoff = new Date(`${form.dropoffDate}T00:00:00`);
 
     const diff = (dropoff.getTime() - pickup.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -138,14 +171,62 @@ export default function BookingPage() {
     form.pickupDate &&
     form.dropoffDate;
 
-  const handleBooking = () => {
-    if (!isValid) return;
+  const handleBooking = async () => {
+    if (!isValid || !car) return;
 
-    setBookingSuccess(true);
+    setIsSubmitting(true);
+    setBookingError(null);
 
-    setTimeout(() => {
-      setBookingSuccess(false);
-    }, 4000);
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          car_id: car.id,
+          full_name: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          pickup_location: form.pickup,
+          dropoff_location: form.dropoff,
+          pickup_date: form.pickupDate,
+          dropoff_date: form.dropoffDate,
+          total_price: total,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create booking");
+      }
+
+      setBookingSuccess(true);
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = window.setTimeout(() => {
+        setBookingSuccess(false);
+        // Reset form
+        setForm({
+          fullName: "",
+          email: "",
+          phone: "",
+          pickup: "",
+          dropoff: "",
+          pickupDate: "",
+          dropoffDate: "",
+        });
+      }, 4000);
+    } catch (error) {
+      console.error("Booking error:", error);
+      setBookingError(
+        error instanceof Error ? error.message : "Failed to create booking",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -181,6 +262,17 @@ export default function BookingPage() {
       <section className="relative mx-auto grid max-w-7xl gap-10 px-6 pb-24 lg:grid-cols-[1.15fr_0.85fr]">
         {/* LEFT */}
         <div className="space-y-8">
+          {/* MINI SLIDER */}
+          {showMiniSlider && cars.length > 0 && (
+            <div className="mx-auto max-w-3xl rounded-[1rem] border border-white/20 bg-white/70 p-3 shadow-lg ring-1 ring-black/5">
+              <MiniSlider
+                cars={cars}
+                selected={selectedCar}
+                onSelect={(id: number) => setSelectedCar(id)}
+              />
+            </div>
+          )}
+
           {/* PROGRESS */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -281,6 +373,7 @@ export default function BookingPage() {
                 icon={CalendarDays}
                 type="date"
                 value={form.pickupDate}
+                min={new Date().toISOString().split("T")[0]}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -293,6 +386,7 @@ export default function BookingPage() {
                 icon={CalendarDays}
                 type="date"
                 value={form.dropoffDate}
+                min={form.pickupDate || new Date().toISOString().split("T")[0]}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -319,7 +413,7 @@ export default function BookingPage() {
               <>
                 <div className="relative mt-6 overflow-hidden rounded-[1.5rem]">
                   <Image
-                    src={car.image}
+                    src={car.image || "/placeholder-car.jpg"}
                     alt={car.name}
                     width={600}
                     height={350}
@@ -337,16 +431,19 @@ export default function BookingPage() {
 
                 {/* SPECS */}
                 <div className="mt-6 grid grid-cols-3 gap-3">
-                  <MiniSpec icon={<Users size={16} />} value={`${car.seats}`} />
+                  <MiniSpec
+                    icon={<Users size={16} />}
+                    value={`${car.seats || "-"}`}
+                  />
 
                   <MiniSpec
                     icon={<Fuel size={16} />}
-                    value={String(car.fuel)}
+                    value={String(car.fuel || "-")}
                   />
 
                   <MiniSpec
                     icon={<CarFront size={16} />}
-                    value={String(car.transmission)}
+                    value={String(car.transmission || "-")}
                   />
                 </div>
               </>
@@ -378,15 +475,36 @@ export default function BookingPage() {
             {/* CTA */}
             <button
               onClick={handleBooking}
-              disabled={!isValid}
+              disabled={!isValid || isSubmitting}
               className={`mt-7 w-full rounded-2xl py-4 text-sm font-semibold transition-all duration-300 ${
-                isValid
+                isValid && !isSubmitting
                   ? "bg-red-600 text-white hover:scale-[1.02] hover:bg-red-700 hover:shadow-[0_0_40px_rgba(220,38,38,0.35)]"
                   : "cursor-not-allowed bg-white/10 text-gray-500"
               }`}
             >
-              Confirm Reservation
+              {isSubmitting ? "Processing..." : "Confirm Reservation"}
             </button>
+
+            {/* ERROR */}
+            {bookingError && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-400"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20">
+                    <Check size={18} />
+                  </div>
+
+                  <div>
+                    <p className="font-bold">Error</p>
+
+                    <p className="text-sm text-red-300">{bookingError}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* SUCCESS */}
             {bookingSuccess && (
@@ -423,6 +541,7 @@ function Input({
   placeholder,
   type = "text",
   value,
+  min,
   onChange,
 }: {
   icon: ComponentType<{
@@ -432,6 +551,7 @@ function Input({
   placeholder?: string;
   type?: string;
   value?: string;
+  min?: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -445,6 +565,7 @@ function Input({
         type={type}
         placeholder={placeholder}
         value={value}
+        min={min}
         onChange={onChange}
         className="w-full rounded-2xl border border-black/5 bg-white/80 p-4 pl-12 outline-none transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
       />
@@ -488,7 +609,7 @@ function SelectInput({
   );
 }
 
-function MiniSpec({ icon, value }: { icon: React.ReactNode; value: string }) {
+function MiniSpec({ icon, value }: { icon: ReactNode; value: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur">
       <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-red-600/20 text-red-400">
@@ -496,6 +617,199 @@ function MiniSpec({ icon, value }: { icon: React.ReactNode; value: string }) {
       </div>
 
       <p className="mt-3 text-xs font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+/* MINI SLIDER */
+function MiniSlider({
+  cars,
+  selected,
+  onSelect,
+}: {
+  cars: Car[];
+  selected: number | null;
+  onSelect: (id: number) => void;
+}) {
+  const [index, setIndex] = useState(0);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const touchStartX = useRef<number | null>(null);
+
+  const paused = useRef(false);
+
+  const autoRef = useRef<number | null>(null);
+
+  /* KEEP INDEX SAFE */
+  useEffect(() => {
+    if (!cars || cars.length === 0) return;
+
+    setIndex((i) => (i >= cars.length ? 0 : i));
+  }, [cars]);
+
+  /* AUTO SCROLL */
+  useEffect(() => {
+    if (!cars || cars.length <= 1) return;
+
+    function stopAuto() {
+      if (autoRef.current) {
+        clearInterval(autoRef.current);
+        autoRef.current = null;
+      }
+    }
+
+    function startAuto() {
+      stopAuto();
+
+      autoRef.current = window.setInterval(() => {
+        if (paused.current) return;
+
+        setIndex((i) => {
+          const next = (i + 1) % cars.length;
+
+          const nextCar = cars[next];
+
+          if (nextCar) {
+            onSelect(nextCar.id);
+          }
+
+          return next;
+        });
+      }, 3000);
+    }
+
+    startAuto();
+
+    return () => stopAuto();
+  }, [cars, onSelect]);
+
+  /* SCROLL INTO VIEW */
+  useEffect(() => {
+    const el = containerRef.current?.children[index] as HTMLElement | undefined;
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [index]);
+
+  /* TOUCH START */
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+    paused.current = true;
+  }
+
+  /* TOUCH END */
+  function handleTouchEnd(e: React.TouchEvent) {
+    const start = touchStartX.current;
+
+    const end = e.changedTouches[0].clientX;
+
+    touchStartX.current = null;
+
+    paused.current = false;
+
+    if (start == null) return;
+
+    const delta = end - start;
+
+    if (Math.abs(delta) < 40) return;
+
+    if (delta < 0) {
+      setIndex((i) => {
+        const next = Math.min(cars.length - 1, i + 1);
+
+        const nextCar = cars[next];
+
+        if (nextCar) {
+          onSelect(nextCar.id);
+        }
+
+        return next;
+      });
+    } else {
+      setIndex((i) => {
+        const prev = Math.max(0, i - 1);
+
+        const prevCar = cars[prev];
+
+        if (prevCar) {
+          onSelect(prevCar.id);
+        }
+
+        return prev;
+      });
+    }
+  }
+
+  return (
+    <div>
+      <div className="rounded-md bg-white/0 p-1">
+        <div
+          ref={containerRef}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onMouseEnter={() => (paused.current = true)}
+          onMouseLeave={() => (paused.current = false)}
+          className="mini-slider-scroll flex items-center gap-2 overflow-x-auto py-1"
+        >
+          {cars.map((c, i) => (
+            <button
+              key={c.id}
+              onClick={() => {
+                onSelect(c.id);
+                setIndex(i);
+              }}
+              className={`flex min-w-[8rem] items-center gap-2 rounded-lg border px-2 py-1 text-left transition-all duration-150 ${
+                selected === c.id
+                  ? "border-red-600 bg-red-50"
+                  : "border-transparent bg-white/60"
+              }`}
+            >
+              <Image
+                src={c.image || "/placeholder-car.jpg"}
+                alt={c.name}
+                width={120}
+                height={72}
+                className="h-12 w-20 rounded-md object-cover"
+              />
+
+              <div>
+                <p className="line-clamp-1 text-sm font-semibold text-black">
+                  {c.name}
+                </p>
+
+                <p className="text-xs text-gray-600">${c.price}/day</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* INDICATORS */}
+      <div className="mt-2 flex items-center justify-center gap-2">
+        {cars.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              const id = cars[i]?.id;
+
+              if (id) {
+                onSelect(id);
+                setIndex(i);
+              }
+            }}
+            className={`h-2 w-6 rounded-full transition-all duration-200 ${
+              i === index ? "bg-red-600" : "bg-white/40"
+            }`}
+            aria-label={`Show car ${i + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

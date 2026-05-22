@@ -1,4 +1,11 @@
-import { boolean, integer, pgTable, serial, text } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const cars = pgTable("cars", {
   id: serial("id").primaryKey(),
@@ -24,10 +31,32 @@ export const faqs = pgTable("faqs", {
   category: text("category").notNull(),
 });
 
+export const contact_messages = pgTable("contact_messages", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  message: text("message").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   password_hash: text("password_hash").notNull(),
   is_admin: boolean("is_admin").notNull().default(false),
+});
+
+export const bookings = pgTable("bookings", {
+  id: serial("id").primaryKey(),
+  car_id: integer("car_id").notNull(),
+  full_name: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  pickup_location: text("pickup_location").notNull(),
+  dropoff_location: text("dropoff_location").notNull(),
+  pickup_date: text("pickup_date").notNull(),
+  dropoff_date: text("dropoff_date").notNull(),
+  total_price: integer("total_price").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
 });
