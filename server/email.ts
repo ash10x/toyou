@@ -1,10 +1,13 @@
-import nodemailer from "nodemailer";
-
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "no-reply@toyocar.com";
 const ADMIN_EMAIL =
   process.env.CONTACT_NOTIFICATION_EMAIL ?? "support@toyocar.com";
 
-function getTransporter() {
+async function sendMail(options: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}) {
   const host = process.env.EMAIL_SMTP_HOST;
   const user = process.env.EMAIL_SMTP_USER;
   const pass = process.env.EMAIL_SMTP_PASS;
@@ -15,21 +18,14 @@ function getTransporter() {
     );
   }
 
-  return nodemailer.createTransport({
+  const { default: nodemailer } = await import("nodemailer");
+
+  const transporter = nodemailer.createTransport({
     host,
     port: Number(process.env.EMAIL_SMTP_PORT ?? 587),
     secure: process.env.EMAIL_SMTP_SECURE === "true",
     auth: { user, pass },
   });
-}
-
-async function sendMail(options: {
-  to: string;
-  subject: string;
-  text: string;
-  html: string;
-}) {
-  const transporter = getTransporter();
   return transporter.sendMail({
     from: EMAIL_FROM,
     to: options.to,

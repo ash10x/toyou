@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["nodemailer", "pg", "pg-pool"],
+  serverExternalPackages: ["@neondatabase/serverless"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "via.placeholder.com" },

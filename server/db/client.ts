@@ -1,5 +1,5 @@
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 
 const connectionString = process.env.NEON_DATABASE_URL;
 
@@ -7,23 +7,4 @@ if (!connectionString) {
   throw new Error("NEON_DATABASE_URL is not set in environment variables");
 }
 
-let pool: Pool | null = null;
-
-function ensurePool() {
-  if (!pool) {
-    pool = new Pool({ connectionString });
-  }
-  return pool;
-}
-
-export async function getClient(): Promise<Pool> {
-  return ensurePool();
-}
-
-export const db = drizzle(ensurePool());
-
-export async function closeClient() {
-  if (!pool) return;
-  await pool.end();
-  pool = null;
-}
+export const db = drizzle(neon(connectionString));
