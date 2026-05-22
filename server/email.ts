@@ -1,29 +1,27 @@
 import nodemailer from "nodemailer";
 
-const SMTP_HOST = process.env.EMAIL_SMTP_HOST;
-const SMTP_PORT = Number(process.env.EMAIL_SMTP_PORT ?? 587);
-const SMTP_USER = process.env.EMAIL_SMTP_USER;
-const SMTP_PASS = process.env.EMAIL_SMTP_PASS;
-const USE_SECURE = process.env.EMAIL_SMTP_SECURE === "true";
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "no-reply@toyocar.com";
 const ADMIN_EMAIL =
   process.env.CONTACT_NOTIFICATION_EMAIL ?? "support@toyocar.com";
 
-if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-  throw new Error(
-    "Email SMTP configuration missing. Set EMAIL_SMTP_HOST, EMAIL_SMTP_USER, and EMAIL_SMTP_PASS.",
-  );
-}
+function getTransporter() {
+  const host = process.env.EMAIL_SMTP_HOST;
+  const user = process.env.EMAIL_SMTP_USER;
+  const pass = process.env.EMAIL_SMTP_PASS;
 
-const transporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: SMTP_PORT,
-  secure: USE_SECURE,
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
-  },
-});
+  if (!host || !user || !pass) {
+    throw new Error(
+      "Email SMTP configuration missing. Set EMAIL_SMTP_HOST, EMAIL_SMTP_USER, and EMAIL_SMTP_PASS.",
+    );
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port: Number(process.env.EMAIL_SMTP_PORT ?? 587),
+    secure: process.env.EMAIL_SMTP_SECURE === "true",
+    auth: { user, pass },
+  });
+}
 
 async function sendMail(options: {
   to: string;
@@ -31,6 +29,7 @@ async function sendMail(options: {
   text: string;
   html: string;
 }) {
+  const transporter = getTransporter();
   return transporter.sendMail({
     from: EMAIL_FROM,
     to: options.to,
