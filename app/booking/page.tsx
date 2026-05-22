@@ -415,7 +415,7 @@ export default function BookingPage() {
               <>
                 <div className="relative mt-6 overflow-hidden rounded-[1.5rem]">
                   <Image
-                    src={car.image || "/placeholder-car.jpg"}
+                    src={car.image || "https://via.placeholder.com/600x350"}
                     alt={car.name}
                     width={600}
                     height={350}
@@ -782,7 +782,7 @@ function MiniSlider({
               }`}
             >
               <Image
-                src={c.image || "/placeholder-car.jpg"}
+                src={c.image || "https://via.placeholder.com/600x350"}
                 alt={c.name}
                 width={120}
                 height={72}

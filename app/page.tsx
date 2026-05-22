@@ -417,7 +417,7 @@ export default function LandingPage() {
                 {/* IMAGE */}
                 <div className="relative h-72 overflow-hidden">
                   <Image
-                    src={car.image}
+                    src={car.image || "https://via.placeholder.com/600x350"}
                     alt={car.name}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
