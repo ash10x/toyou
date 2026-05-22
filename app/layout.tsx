@@ -3,6 +3,7 @@ import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navigation";
 import Footer from "./components/footer";
+import { getBusinessInfo } from "@/server/db/queries";
 
 const openSans = Open_Sans({
   variable: "--font-open-sans",
@@ -18,17 +19,19 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const businessInfo = await getBusinessInfo();
+
   return (
     <html lang="en" className={`${openSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Navbar />
         {children}
-        <Footer />
+        <Footer businessInfo={businessInfo} />
       </body>
     </html>
   );

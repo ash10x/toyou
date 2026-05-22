@@ -7,6 +7,7 @@ import {
   locations,
   users,
   bookings,
+  business_info,
 } from "./schema";
 
 export async function getCars() {
@@ -178,6 +179,33 @@ export async function updateUser(
       is_admin: users.is_admin,
     });
   return updated;
+}
+
+export async function getBusinessInfo() {
+  const rows = await db
+    .select()
+    .from(business_info)
+    .where(eq(business_info.id, 1))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertBusinessInfo(info: Partial<{
+  phone: string;
+  email: string;
+  address: string;
+  hours: string;
+  facebook_url: string;
+  instagram_url: string;
+  twitter_url: string;
+  maps_embed_url: string;
+}>) {
+  const [row] = await db
+    .insert(business_info)
+    .values({ id: 1, ...info })
+    .onConflictDoUpdate({ target: business_info.id, set: info })
+    .returning();
+  return row;
 }
 
 export async function createBooking(booking: {

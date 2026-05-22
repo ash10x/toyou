@@ -8,6 +8,17 @@ import { FiMail, FiPhone, FiMapPin, FiArrowUpRight } from "react-icons/fi";
 
 import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
 
+type BusinessInfo = {
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  hours: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  twitter_url: string | null;
+  maps_embed_url: string | null;
+} | null;
+
 const quickLinks = [
   { name: "Home", href: "/" },
   { name: "Cars", href: "/cars" },
@@ -21,22 +32,23 @@ const legalLinks = [
   { name: "Terms of Service", href: "/terms" },
 ];
 
-const socials = [
-  {
-    icon: FaFacebookF,
-    href: "#",
-  },
-  {
-    icon: FaInstagram,
-    href: "#",
-  },
-  {
-    icon: FaTwitter,
-    href: "#",
-  },
-];
+export default function Footer({ businessInfo }: { businessInfo: BusinessInfo }) {
+  const phone = businessInfo?.phone ?? null;
+  const email = businessInfo?.email ?? null;
+  const address = businessInfo?.address ?? null;
 
-export default function Footer() {
+  const socials = [
+    businessInfo?.facebook_url
+      ? { icon: FaFacebookF, href: businessInfo.facebook_url }
+      : null,
+    businessInfo?.instagram_url
+      ? { icon: FaInstagram, href: businessInfo.instagram_url }
+      : null,
+    businessInfo?.twitter_url
+      ? { icon: FaTwitter, href: businessInfo.twitter_url }
+      : null,
+  ].filter((s): s is { icon: typeof FaFacebookF; href: string } => s !== null);
+
   return (
     <footer className="relative overflow-hidden bg-black">
       {/* BACKGROUND GLOW */}
@@ -71,21 +83,23 @@ export default function Footer() {
             </p>
 
             {/* SOCIALS */}
-            <div className="mt-8 flex items-center gap-4">
-              {socials.map((social, index) => {
-                const Icon = social.icon;
+            {socials.length > 0 && (
+              <div className="mt-8 flex items-center gap-4">
+                {socials.map((social, index) => {
+                  const Icon = social.icon;
 
-                return (
-                  <Link
-                    key={index}
-                    href={social.href}
-                    className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition-all duration-300 hover:-translate-y-1 hover:border-red-500 hover:bg-red-600"
-                  >
-                    <Icon size={18} />
-                  </Link>
-                );
-              })}
-            </div>
+                  return (
+                    <Link
+                      key={index}
+                      href={social.href}
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition-all duration-300 hover:-translate-y-1 hover:border-red-500 hover:bg-red-600"
+                    >
+                      <Icon size={18} />
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
 
           {/* QUICK LINKS */}
@@ -153,53 +167,59 @@ export default function Footer() {
 
             <div className="mt-6 space-y-5">
               {/* PHONE */}
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
-                  <FiPhone size={18} />
-                </div>
+              {phone && (
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
+                    <FiPhone size={18} />
+                  </div>
 
-                <div>
-                  <p className="text-sm text-gray-500">Phone</p>
+                  <div>
+                    <p className="text-sm text-gray-500">Phone</p>
 
-                  <a
-                    href="tel:+18760000000"
-                    className="mt-1 block text-white transition-colors hover:text-red-500"
-                  >
-                    +1 (876) 000-0000
-                  </a>
+                    <a
+                      href={`tel:${phone.replace(/\D/g, "")}`}
+                      className="mt-1 block text-white transition-colors hover:text-red-500"
+                    >
+                      {phone}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* EMAIL */}
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
-                  <FiMail size={18} />
-                </div>
+              {email && (
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
+                    <FiMail size={18} />
+                  </div>
 
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
+                  <div>
+                    <p className="text-sm text-gray-500">Email</p>
 
-                  <a
-                    href="mailto:info@toyourentals.com"
-                    className="mt-1 block text-white transition-colors hover:text-red-500"
-                  >
-                    info@toyourentals.com
-                  </a>
+                    <a
+                      href={`mailto:${email}`}
+                      className="mt-1 block text-white transition-colors hover:text-red-500"
+                    >
+                      {email}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* LOCATION */}
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
-                  <FiMapPin size={18} />
-                </div>
+              {address && (
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
+                    <FiMapPin size={18} />
+                  </div>
 
-                <div>
-                  <p className="text-sm text-gray-500">Location</p>
+                  <div>
+                    <p className="text-sm text-gray-500">Location</p>
 
-                  <p className="mt-1 text-white">Kingston, Jamaica</p>
+                    <p className="mt-1 text-white">{address}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         </div>

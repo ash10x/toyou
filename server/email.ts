@@ -59,7 +59,9 @@ export async function sendAdminNotificationEmail(
   name: string,
   email: string,
   message: string,
+  adminEmail?: string,
 ) {
+  const notificationEmail = adminEmail || ADMIN_EMAIL;
   const subject = `New contact form submission from ${name}`;
   const text = `New contact request:\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
   const html = `
@@ -72,7 +74,7 @@ export async function sendAdminNotificationEmail(
       .join("<br/>")}</p>
   `;
 
-  return sendMail({ to: ADMIN_EMAIL, subject, text, html });
+  return sendMail({ to: notificationEmail, subject, text, html });
 }
 
 export async function sendBookingConfirmationEmail(

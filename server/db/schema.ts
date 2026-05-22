@@ -47,6 +47,18 @@ export const users = pgTable("users", {
   is_admin: boolean("is_admin").notNull().default(false),
 });
 
+export const business_info = pgTable("business_info", {
+  id: serial("id").primaryKey(),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  hours: text("hours"),
+  facebook_url: text("facebook_url"),
+  instagram_url: text("instagram_url"),
+  twitter_url: text("twitter_url"),
+  maps_embed_url: text("maps_embed_url"),
+});
+
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
   car_id: integer("car_id").notNull(),
