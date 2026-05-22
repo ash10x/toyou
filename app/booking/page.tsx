@@ -4,8 +4,8 @@
 
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   useMemo,
@@ -44,10 +44,36 @@ type Car = {
 };
 
 export default function BookingPage() {
-  const [selectedCar, setSelectedCar] = useState<number | null>(null);
+  return (
+    <Suspense>
+      <BookingPageContent />
+    </Suspense>
+  );
+}
 
-  const [prefilledCar, setPrefilledCar] = useState<Car | null>(null);
-  const [showMiniSlider, setShowMiniSlider] = useState(false);
+function BookingPageContent() {
+  const searchParams = useSearchParams();
+
+  const carId = Number(searchParams.get("carId"));
+  const incomingCar: Car | null =
+    !Number.isNaN(carId) && carId > 0
+      ? {
+          id: carId,
+          name: searchParams.get("carName") || "",
+          image: searchParams.get("carImage") || "",
+          price: Number(searchParams.get("carPrice")) || 0,
+          transmission: searchParams.get("transmission") || "",
+          body: searchParams.get("body") || "",
+          fuel: searchParams.get("fuel") || "",
+          seats: Number(searchParams.get("seats")) || 0,
+        }
+      : null;
+
+  const [selectedCar, setSelectedCar] = useState<number | null>(
+    incomingCar?.id ?? null,
+  );
+  const [prefilledCar] = useState<Car | null>(incomingCar);
+  const [showMiniSlider] = useState(searchParams.get("from") === "nav");
 
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
@@ -59,13 +85,13 @@ export default function BookingPage() {
   const timeoutRef = useRef<number | null>(null);
 
   const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    pickup: "",
-    dropoff: "",
-    pickupDate: "",
-    dropoffDate: "",
+    fullName: searchParams.get("fullName") || "",
+    email: searchParams.get("email") || "",
+    phone: searchParams.get("phone") || "",
+    pickup: searchParams.get("pickup") || "",
+    dropoff: searchParams.get("dropoff") || "",
+    pickupDate: searchParams.get("pickupDate") || "",
+    dropoffDate: searchParams.get("dropoffDate") || "",
   });
 
   /* CLEANUP */
@@ -75,37 +101,6 @@ export default function BookingPage() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
-
-  /* QUERY PARAMS */
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const params = new URLSearchParams(window.location.search);
-
-    const carId = Number(params.get("carId"));
-
-    const incomingCar: Car | null =
-      !Number.isNaN(carId) && carId > 0
-        ? {
-            id: carId,
-            name: params.get("carName") || "",
-            image: params.get("carImage") || "",
-            price: Number(params.get("carPrice")) || 0,
-            transmission: params.get("transmission") || "",
-            body: params.get("body") || "",
-            fuel: params.get("fuel") || "",
-            seats: Number(params.get("seats")) || 0,
-          }
-        : null;
-
-    setPrefilledCar(incomingCar);
-
-    if (incomingCar) {
-      setSelectedCar(incomingCar.id);
-    }
-
-    setShowMiniSlider(params.get("from") === "nav");
   }, []);
 
   /* FETCH */
