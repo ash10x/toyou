@@ -3,7 +3,12 @@ import { getBusinessInfo } from "@/server/db/queries";
 import ContactForm from "./ContactForm";
 
 export default async function ContactPage() {
-  const info = await getBusinessInfo();
+  let info = null;
+  try {
+    info = await getBusinessInfo();
+  } catch {
+    // DB unavailable during static pre-rendering
+  }
 
   const phone = info?.phone ?? null;
   const email = info?.email ?? null;

@@ -24,7 +24,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const businessInfo = await getBusinessInfo();
+  let businessInfo = null;
+  try {
+    businessInfo = await getBusinessInfo();
+  } catch {
+    // DB unavailable during static pre-rendering (e.g. build without env vars)
+  }
 
   return (
     <html lang="en" className={`${openSans.variable} h-full antialiased`}>
