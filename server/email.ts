@@ -127,7 +127,7 @@ export async function sendBookingConfirmationEmail(
                   "
                 >
                   <img
-                    src="https://yourdomain.com/logo.png"
+                    src="https://www.toyoucarrentals.com/_next/image?url=%2Flogo%2Flogo.png&w=256&q=75"
                     alt="ToYou Car Rentals"
                     width="140"
                     style="
