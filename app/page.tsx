@@ -293,6 +293,7 @@ export default function LandingPage() {
                 <div className="grid gap-5 md:grid-cols-2">
                   <GlassSelect
                     icon={MapPin}
+                    label="Pickup Location"
                     value={form.pickup}
                     onChange={(e) =>
                       setForm({
@@ -306,6 +307,7 @@ export default function LandingPage() {
 
                   <GlassSelect
                     icon={MapPin}
+                    label="Dropoff Location"
                     value={form.dropoff}
                     onChange={(e) =>
                       setForm({
@@ -615,39 +617,48 @@ function GlassInput({
 
 function GlassSelect({
   icon: Icon,
+  label,
   value,
   onChange,
   options,
   placeholder,
 }: {
   icon: any;
+  label?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: string[];
   placeholder: string;
 }) {
   return (
-    <div className="relative">
-      <Icon
-        className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
-        size={18}
-      />
+    <div>
+      {label && (
+        <label className="mb-2 block text-sm font-semibold text-white/80">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <Icon
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
+          size={18}
+        />
 
-      <select
-        value={value}
-        onChange={onChange}
-        className={`w-full rounded-2xl border border-white/10 bg-white/10 py-4 pl-12 pr-4 outline-none backdrop-blur-md transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
-          value ? "text-white" : "text-gray-400"
-        }`}
-      >
-        <option value="">{placeholder}</option>
+        <select
+          value={value}
+          onChange={onChange}
+          className={`w-full rounded-2xl border border-white/10 bg-white/10 py-4 pl-12 pr-4 outline-none backdrop-blur-md transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
+            value ? "text-white" : "text-gray-400"
+          }`}
+        >
+          <option value="">{placeholder}</option>
 
-        {options.map((option) => (
-          <option key={option} value={option} className="text-black">
-            {option}
-          </option>
-        ))}
-      </select>
+          {options.map((option) => (
+            <option key={option} value={option} className="text-black">
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

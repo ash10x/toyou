@@ -348,6 +348,7 @@ export default function BookingPage() {
 
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <SelectInput
+                label="Pickup Location"
                 value={form.pickup}
                 onChange={(e) =>
                   setForm({
@@ -359,6 +360,7 @@ export default function BookingPage() {
               />
 
               <SelectInput
+                label="Dropoff Location"
                 value={form.dropoff}
                 onChange={(e) =>
                   setForm({
@@ -575,36 +577,45 @@ function Input({
 
 /* SELECT */
 function SelectInput({
+  label,
   value,
   onChange,
   options,
 }: {
+  label?: string;
   value?: string;
   onChange?: (e: ChangeEvent<HTMLSelectElement>) => void;
   options: string[];
 }) {
   return (
-    <div className="relative">
-      <MapPin
-        className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
-        size={18}
-      />
+    <div>
+      {label && (
+        <label className="mb-2 block text-sm font-semibold text-gray-600">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <MapPin
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
+          size={18}
+        />
 
-      <select
-        value={value}
-        onChange={onChange}
-        className={`w-full rounded-2xl border border-black/5 bg-white/80 p-4 pl-12 outline-none transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
-          value ? "text-black" : "text-gray-400"
-        }`}
-      >
-        <option value="">Select Location</option>
+        <select
+          value={value}
+          onChange={onChange}
+          className={`w-full rounded-2xl border border-black/5 bg-white/80 p-4 pl-12 outline-none transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
+            value ? "text-black" : "text-gray-400"
+          }`}
+        >
+          <option value="">Select Location</option>
 
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
+          {options.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

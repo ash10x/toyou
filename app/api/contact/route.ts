@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     await Promise.all([
       sendContactConfirmationEmail(name, email),
-      sendAdminNotificationEmail(name, email, message, email),
+      sendAdminNotificationEmail(name, email, message),
     ]);
 
     return NextResponse.json(
