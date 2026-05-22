@@ -122,7 +122,7 @@ export async function sendBookingConfirmationEmail(
                 <td
                   align="center"
                   style="
-                    background:white;
+                    background:#ffffff;
                     padding:36px 24px;
                   "
                 >
@@ -152,7 +152,7 @@ export async function sendBookingConfirmationEmail(
                   <h1
                     style="
                       margin:10px 0 0;
-                      color:#111827;
+                      color:#000000;
                       font-size:32px;
                       line-height:1.2;
                     "
