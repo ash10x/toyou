@@ -8,7 +8,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useState, useEffect, useMemo } from "react";
-
 import { useRouter } from "next/navigation";
 
 import {
@@ -60,7 +59,6 @@ export default function LandingPage() {
   const router = useRouter();
 
   const [locations, setLocations] = useState<string[]>([]);
-
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -70,11 +68,8 @@ export default function LandingPage() {
     pickupDate: "",
     dropoffDate: "",
   });
+  const [featuredCars, setFeaturedCars] = useState<FeaturedCar[]>(defaultFeatured);
 
-  const [featuredCars, setFeaturedCars] =
-    useState<FeaturedCar[]>(defaultFeatured);
-
-  /* LOAD DATA */
   useEffect(() => {
     async function loadData() {
       try {
@@ -82,43 +77,33 @@ export default function LandingPage() {
           fetch("/api/featured-cars"),
           fetch("/api/locations"),
         ]);
-
         const featuredJson = await featuredRes.json();
-
         const locationsJson = await locationsRes.json();
-
-        if (featuredJson?.featured) {
-          setFeaturedCars(featuredJson.featured as FeaturedCar[]);
-        }
-
-        if (locationsJson?.locations) {
-          setLocations(locationsJson.locations as string[]);
-        }
+        if (featuredJson?.featured) setFeaturedCars(featuredJson.featured as FeaturedCar[]);
+        if (locationsJson?.locations) setLocations(locationsJson.locations as string[]);
       } catch (err) {
         console.error("Failed to load homepage data", err);
       }
     }
-
     loadData();
   }, []);
 
-  const isValid = useMemo(() => {
-    return (
+  const isValid = useMemo(
+    () =>
       form.fullName &&
       form.email &&
       form.phone &&
       form.pickup &&
       form.dropoff &&
       form.pickupDate &&
-      form.dropoffDate
-    );
-  }, [form]);
+      form.dropoffDate,
+    [form],
+  );
 
   return (
     <main className="overflow-hidden bg-white">
-      {/* HERO */}
+      {/* ── HERO ─────────────────────────────────── */}
       <section className="relative min-h-screen overflow-hidden">
-        {/* BG IMAGE */}
         <div className="absolute inset-0">
           <Image
             src="/images/hero1.jpg"
@@ -127,77 +112,69 @@ export default function LandingPage() {
             priority
             className="object-cover"
           />
-
-          <div className="absolute inset-0 bg-black/75" />
+          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/30 to-transparent" />
         </div>
 
-        {/* GLOWS */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -left-24 top-0 h-[32rem] w-[32rem] rounded-full bg-red-600/20 blur-3xl" />
-
-          <div className="absolute bottom-0 right-0 h-[28rem] w-[28rem] rounded-full bg-white/5 blur-3xl" />
+        {/* GLOW */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-20 top-0 h-[36rem] w-[36rem] rounded-full bg-red-600/15 blur-3xl" />
         </div>
 
-        {/* CONTENT */}
-        <div className="relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-20 px-6 pb-24 pt-32 lg:grid-cols-[1fr_0.85fr] lg:px-10">
+        <div className="relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-16 px-6 pb-24 pt-32 lg:grid-cols-[1fr_0.9fr] lg:px-10">
           {/* LEFT */}
           <motion.div
-            initial={{ opacity: 0, y: 35 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-5 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-red-400 backdrop-blur-xl">
-              <Sparkles size={14} />
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-red-400">
+              <Sparkles size={11} />
               Premium Car Rentals
             </div>
 
-            <h1 className="mt-8 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl">
-              Drive Premium.
-              <span className="mt-3 block text-red-500">Arrive Different.</span>
+            <h1 className="mt-7 max-w-2xl text-[3.6rem] font-black leading-[0.92] tracking-tighter text-white md:text-7xl lg:text-8xl">
+              Drive
+              <br />
+              Premium.
+              <span className="mt-1 block text-red-500">Arrive Different.</span>
             </h1>
 
-            <p className="mt-8 max-w-2xl text-lg leading-relaxed text-gray-300">
+            <p className="mt-7 max-w-lg text-[1.05rem] leading-relaxed text-zinc-300">
               Luxury vehicles, seamless reservations, and elite customer service
-              designed for modern travel experiences.
+              designed for modern travel.
             </p>
 
-            {/* STATS */}
-            <div className="mt-10 flex flex-wrap gap-5">
-              {["Premium Fleet", "24/7 Support", "Fully Insured"].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-medium text-white backdrop-blur-xl"
-                  >
-                    {item}
-                  </div>
-                ),
-              )}
+            {/* TRUST PILLS */}
+            <div className="mt-8 flex flex-wrap gap-2.5">
+              {["Premium Fleet", "24/7 Support", "Fully Insured"].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-full border border-white/10 bg-white/[0.07] px-4 py-2 text-xs font-medium tracking-wide text-zinc-300 backdrop-blur-sm"
+                >
+                  {item}
+                </div>
+              ))}
             </div>
 
-            {/* CTA */}
-            <div className="mt-12 flex flex-wrap items-center gap-5">
+            {/* CTA ROW */}
+            <div className="mt-10 flex flex-wrap items-center gap-5">
               <Link
                 href="/cars"
-                className="group inline-flex items-center gap-2 rounded-full bg-red-600 px-8 py-4 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-red-700 hover:shadow-[0_0_40px_rgba(220,38,38,0.45)]"
+                className="group inline-flex items-center gap-2 rounded-full bg-red-600 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-700 hover:shadow-[0_0_32px_rgba(220,38,38,0.45)]"
               >
                 Explore Fleet
                 <ArrowRight
-                  size={18}
+                  size={16}
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
               </Link>
 
-              <div className="flex items-center gap-2 text-white">
+              <div className="flex items-center gap-2">
                 {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="fill-red-500 text-red-500"
-                    size={18}
-                  />
+                  <Star key={i} className="fill-red-500 text-red-500" size={14} />
                 ))}
-
-                <span className="ml-2 text-sm text-gray-300">
+                <span className="ml-1 text-xs text-zinc-400">
                   Trusted by 1,000+ customers
                 </span>
               </div>
@@ -208,37 +185,32 @@ export default function LandingPage() {
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7 }}
-            className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 p-8 shadow-[0_20px_100px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.07] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
           >
-            {/* OVERLAY */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.06),transparent_60%)]" />
 
             <div className="relative">
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-2 rounded-full bg-red-600/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-red-400">
-                  <ShieldCheck size={14} />
+              <div className="mb-7">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-red-600/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-red-400">
+                  <ShieldCheck size={11} />
                   Secure Booking
                 </div>
-
-                <h2 className="mt-5 text-4xl font-black text-white">
+                <h2 className="mt-4 text-3xl font-black tracking-tight text-white">
                   Reserve Your Vehicle
                 </h2>
-
-                <p className="mt-3 text-gray-300">
-                  Quick booking experience with instant reservation
-                  confirmation.
+                <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                  Quick booking with instant confirmation.
                 </p>
               </div>
 
               <form
-                className="space-y-5"
+                className="space-y-4"
                 onSubmit={(e) => {
                   e.preventDefault();
-
                   if (!isValid) return;
-
                   const params = new URLSearchParams({
+                    from: "form",
                     fullName: form.fullName,
                     email: form.email,
                     phone: form.phone,
@@ -247,120 +219,74 @@ export default function LandingPage() {
                     pickupDate: form.pickupDate,
                     dropoffDate: form.dropoffDate,
                   });
-
                   router.push(`/booking?${params.toString()}`);
                 }}
               >
-                {/* NAME */}
                 <GlassInput
                   placeholder="Full Name"
                   value={form.fullName}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      fullName: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 />
-
-                {/* EMAIL */}
                 <GlassInput
                   type="email"
                   placeholder="Email Address"
                   value={form.email}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      email: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
-
-                {/* PHONE */}
                 <GlassInput
                   type="tel"
                   placeholder="Phone Number"
                   value={form.phone}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      phone: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
 
-                {/* LOCATIONS */}
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                   <GlassSelect
                     icon={MapPin}
                     label="Pickup Location"
                     value={form.pickup}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        pickup: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setForm({ ...form, pickup: e.target.value })}
                     options={locations}
                     placeholder="Pickup"
                   />
-
                   <GlassSelect
                     icon={MapPin}
                     label="Dropoff Location"
                     value={form.dropoff}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        dropoff: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setForm({ ...form, dropoff: e.target.value })}
                     options={locations}
                     placeholder="Dropoff"
                   />
                 </div>
 
-                {/* DATES */}
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                   <GlassInput
                     icon={CalendarDays}
                     type="date"
                     value={form.pickupDate}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        pickupDate: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setForm({ ...form, pickupDate: e.target.value })}
                   />
-
                   <GlassInput
                     icon={CalendarDays}
                     type="date"
                     value={form.dropoffDate}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        dropoffDate: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setForm({ ...form, dropoffDate: e.target.value })}
                   />
                 </div>
 
-                {/* SUBMIT */}
                 <button
                   type="submit"
                   disabled={!isValid}
-                  className={`group mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-lg font-semibold transition-all duration-300 ${
+                  className={`group mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-semibold transition-all duration-300 ${
                     isValid
-                      ? "bg-red-600 text-white hover:scale-[1.02] hover:bg-red-700 hover:shadow-[0_0_35px_rgba(220,38,38,0.45)]"
-                      : "cursor-not-allowed bg-white/10 text-gray-500"
+                      ? "bg-red-600 text-white hover:bg-red-700 hover:shadow-[0_0_28px_rgba(220,38,38,0.45)]"
+                      : "cursor-not-allowed bg-white/10 text-zinc-500"
                   }`}
                 >
                   Continue Booking
                   <ChevronRight
-                    size={20}
-                    className="transition-transform duration-300 group-hover:translate-x-1"
+                    size={17}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5"
                   />
                 </button>
               </form>
@@ -369,97 +295,60 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURED */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#fafafa] via-white to-[#f3f3f3] py-28">
-        {/* BG */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -left-20 top-0 h-72 w-72 rounded-full bg-red-600/10 blur-3xl" />
-
-          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-black/5 blur-3xl" />
+      {/* ── FEATURED VEHICLES ────────────────────── */}
+      <section className="relative overflow-hidden bg-[#f5f5f7] py-28">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-red-600/8 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-zinc-900/5 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
-          {/* HEADER */}
           <div className="mb-16 text-center">
-            <span className="text-sm font-semibold uppercase tracking-[0.25em] text-red-600">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">
               Featured Fleet
-            </span>
-
-            <h2 className="mt-5 text-5xl font-black tracking-tight text-black">
+            </p>
+            <h2 className="mt-4 text-5xl font-black tracking-tighter text-zinc-950 md:text-6xl">
               Luxury Vehicles
             </h2>
-
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-600">
-              Hand-selected premium vehicles crafted for comfort, elegance, and
-              performance.
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-zinc-500">
+              Hand-selected premium vehicles crafted for comfort, elegance, and performance.
             </p>
           </div>
 
-          {/* GRID */}
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
             {featuredCars.map((car, index) => (
               <motion.div
                 key={car.name}
-                initial={{
-                  opacity: 0,
-                  y: 40,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  delay: index * 0.08,
-                }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 viewport={{ once: true }}
-                className="group overflow-hidden rounded-[2rem] border border-white/40 bg-white/80 shadow-[0_20px_80px_rgba(0,0,0,0.06)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_100px_rgba(0,0,0,0.12)]"
+                className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.1)]"
               >
-                {/* IMAGE */}
-                <div className="relative h-72 overflow-hidden">
+                <div className="relative h-64 overflow-hidden">
                   <Image
                     src={car.image || "https://via.placeholder.com/600x350"}
                     alt={car.name}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-
-                  <div className="absolute bottom-5 left-5 rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-xl shadow-red-500/20">
+                  <div className="absolute inset-0 bg-linear-to-t from-black/65 to-transparent" />
+                  <div className="absolute bottom-4 left-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-red-900/20">
                     ${car.price}/day
                   </div>
                 </div>
 
-                {/* CONTENT */}
                 <div className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-2xl font-black text-black">
-                        {car.name}
-                      </h3>
+                  <h3 className="text-xl font-black tracking-tight text-zinc-950">{car.name}</h3>
+                  <p className="mt-1 text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                    Premium Rental
+                  </p>
 
-                      <p className="mt-1 text-sm text-gray-500">
-                        Premium Rental Vehicle
-                      </p>
-                    </div>
+                  <div className="mt-5 grid grid-cols-2 gap-2.5">
+                    <FeatureSpec icon={<Users size={14} />} label="Seats" value={`${car.seats || 5}`} />
+                    <FeatureSpec icon={<Fuel size={14} />} label="Fuel" value={car.fuel || "Gasoline"} />
                   </div>
 
-                  {/* SPECS */}
-                  <div className="mt-7 grid grid-cols-2 gap-3">
-                    <FeatureSpec
-                      icon={<Users size={16} />}
-                      label="Seats"
-                      value={`${car.seats || 5}`}
-                    />
-
-                    <FeatureSpec
-                      icon={<Fuel size={16} />}
-                      label="Fuel"
-                      value={car.fuel || "Gasoline"}
-                    />
-                  </div>
-
-                  {/* CTA */}
                   <Link
                     href={{
                       pathname: "/booking",
@@ -472,71 +361,67 @@ export default function LandingPage() {
                         seats: car.seats?.toString() || "",
                       },
                     }}
-                    className="group mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-black py-4 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_0_35px_rgba(220,38,38,0.35)]"
+                    className="group mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_0_24px_rgba(220,38,38,0.3)]"
                   >
                     Book Now
                     <ArrowRight
-                      size={18}
-                      className="transition-transform duration-300 group-hover:translate-x-1"
+                      size={15}
+                      className="transition-transform duration-300 group-hover:translate-x-0.5"
                     />
                   </Link>
                 </div>
               </motion.div>
             ))}
           </div>
+
+          <div className="mt-14 text-center">
+            <Link
+              href="/cars"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 transition-colors hover:text-zinc-950"
+            >
+              View all vehicles
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* WHY US */}
-      <section className="relative overflow-hidden bg-black py-28">
-        {/* GLOW */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute left-0 top-0 h-[28rem] w-[28rem] rounded-full bg-red-600/10 blur-3xl" />
+      {/* ── WHY US ──────────────────────────────── */}
+      <section className="relative overflow-hidden bg-zinc-950 py-28">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-16 top-0 h-[28rem] w-[28rem] rounded-full bg-red-600/10 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-red-900/10 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
           <div className="mb-16 text-center">
-            <span className="text-sm font-semibold uppercase tracking-[0.25em] text-red-500">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-500">
               Why Choose Us
-            </span>
-
-            <h2 className="mt-5 text-5xl font-black tracking-tight text-white">
+            </p>
+            <h2 className="mt-4 text-5xl font-black tracking-tighter text-white md:text-6xl">
               Premium Experience
             </h2>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             {features.map((feature, index) => {
               const Icon = feature.icon;
-
               return (
                 <motion.div
                   key={feature.title}
-                  initial={{
-                    opacity: 0,
-                    y: 40,
-                  }}
-                  whileInView={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    delay: index * 0.08,
-                  }}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
                   viewport={{ once: true }}
-                  className="group rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:border-red-500/40"
+                  className="group rounded-2xl border border-white/[0.07] bg-white/[0.03] p-8 transition-all duration-500 hover:-translate-y-1 hover:border-red-500/30 hover:bg-white/[0.05]"
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-600 shadow-lg shadow-red-500/20">
-                    <Icon className="text-white" size={28} />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 shadow-lg shadow-red-900/30">
+                    <Icon className="text-white" size={24} />
                   </div>
-
-                  <h3 className="mt-7 text-2xl font-black text-white">
+                  <h3 className="mt-6 text-xl font-black tracking-tight text-white">
                     {feature.title}
                   </h3>
-
-                  <p className="mt-4 leading-relaxed text-gray-400">
-                    {feature.text}
-                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-zinc-400">{feature.text}</p>
                 </motion.div>
               );
             })}
@@ -544,31 +429,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ── BOTTOM CTA ──────────────────────────── */}
       <section className="relative overflow-hidden bg-white py-28">
-        {/* BG */}
-        <div className="absolute inset-0 overflow-hidden opacity-70">
-          <div className="absolute -left-24 top-0 h-80 w-80 rounded-full bg-red-600/10 blur-3xl" />
-
-          <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-black/5 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-red-600/6 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-zinc-900/4 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-5xl font-black tracking-tight text-black">
-            Ready To Hit The Road?
+        <div className="relative mx-auto max-w-3xl px-6 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">
+            Get Started
+          </p>
+          <h2 className="mt-4 text-5xl font-black tracking-tighter text-zinc-950 md:text-6xl">
+            Ready to Hit the Road?
           </h2>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-zinc-500">
             Reserve your dream vehicle today and experience luxury, reliability,
             and exceptional service.
           </p>
-
           <Link
             href="/cars"
-            className="mt-10 inline-flex items-center gap-2 rounded-full bg-red-600 px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-red-700 hover:shadow-[0_0_35px_rgba(220,38,38,0.45)]"
+            className="mt-10 inline-flex items-center gap-2 rounded-full bg-zinc-950 px-8 py-4 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_0_28px_rgba(220,38,38,0.35)]"
           >
             Explore Vehicles
-            <ArrowRight size={20} />
+            <ArrowRight size={16} />
           </Link>
         </div>
       </section>
@@ -576,9 +460,7 @@ export default function LandingPage() {
   );
 }
 
-/* =========================================
-   INPUTS
-========================================= */
+/* ── INPUTS ───────────────────────────────── */
 
 function GlassInput({
   icon: Icon,
@@ -587,7 +469,7 @@ function GlassInput({
   value,
   onChange,
 }: {
-  icon?: any;
+  icon?: React.ComponentType<{ className?: string; size?: number }>;
   type?: string;
   placeholder?: string;
   value?: string;
@@ -596,19 +478,15 @@ function GlassInput({
   return (
     <div className="relative">
       {Icon && (
-        <Icon
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
-          size={18}
-        />
+        <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500" size={15} />
       )}
-
       <input
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full rounded-2xl border border-white/10 bg-white/10 py-4 pr-4 text-white outline-none backdrop-blur-md transition-all duration-300 placeholder:text-gray-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
-          Icon ? "pl-12" : "px-4"
+        className={`h-12 w-full rounded-xl border border-white/10 bg-white/[0.08] text-sm text-white outline-none placeholder:text-zinc-500 transition-all duration-200 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 ${
+          Icon ? "pl-11 pr-4" : "px-4"
         }`}
       />
     </div>
@@ -623,7 +501,7 @@ function GlassSelect({
   options,
   placeholder,
 }: {
-  icon: any;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
   label?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -633,27 +511,22 @@ function GlassSelect({
   return (
     <div>
       {label && (
-        <label className="mb-2 block text-sm font-semibold text-white/80">
+        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-500">
           {label}
         </label>
       )}
       <div className="relative">
-        <Icon
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"
-          size={18}
-        />
-
+        <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500" size={15} />
         <select
           value={value}
           onChange={onChange}
-          className={`w-full rounded-2xl border border-white/10 bg-white/10 py-4 pl-12 pr-4 outline-none backdrop-blur-md transition-all duration-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 ${
-            value ? "text-white" : "text-gray-400"
+          className={`h-12 w-full rounded-xl border border-white/10 bg-white/[0.08] pl-11 pr-4 text-sm outline-none transition-all duration-200 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 ${
+            value ? "text-white" : "text-zinc-500"
           }`}
         >
           <option value="">{placeholder}</option>
-
           {options.map((option) => (
-            <option key={option} value={option} className="text-black">
+            <option key={option} value={option} className="bg-zinc-900 text-white">
               {option}
             </option>
           ))}
@@ -673,16 +546,12 @@ function FeatureSpec({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl bg-[#fafafa] p-4 text-center transition-all duration-300 hover:bg-red-50">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-red-600/10 text-red-600">
+    <div className="rounded-xl bg-zinc-50 px-3 py-3 text-center">
+      <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-red-600/10 text-red-600">
         {icon}
       </div>
-
-      <p className="mt-3 text-xs font-medium uppercase tracking-wide text-gray-500">
-        {label}
-      </p>
-
-      <p className="mt-1 text-sm font-bold text-black">{value}</p>
+      <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
+      <p className="mt-0.5 text-sm font-bold text-zinc-900">{value}</p>
     </div>
   );
 }

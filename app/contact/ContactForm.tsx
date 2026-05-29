@@ -5,27 +5,18 @@ import { Send } from "lucide-react";
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-
   const [status, setStatus] = useState<{
     type: "idle" | "loading" | "success" | "error";
     message: string;
   }>({ type: "idle", message: "" });
 
-  const isValidEmail = (value: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (
-      !form.name.trim() ||
-      !isValidEmail(form.email) ||
-      !form.message.trim()
-    ) {
-      setStatus({
-        type: "error",
-        message: "Please enter a valid name, email address, and message.",
-      });
+    if (!form.name.trim() || !isValidEmail(form.email) || !form.message.trim()) {
+      setStatus({ type: "error", message: "Please enter a valid name, email address, and message." });
       return;
     }
 
@@ -37,87 +28,84 @@ export default function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Unable to send message.");
-      }
-
+      if (!res.ok) throw new Error(data?.error || "Unable to send message.");
       setForm({ name: "", email: "", message: "" });
       setStatus({
         type: "success",
-        message:
-          "Message sent! A confirmation email has been delivered to your inbox.",
+        message: "Message sent! A confirmation email has been delivered to your inbox.",
       });
     } catch (error) {
       console.error("Contact submission failed", error);
       setStatus({
         type: "error",
-        message:
-          "Unable to send your message right now. Please try again later.",
+        message: "Unable to send your message right now. Please try again later.",
       });
     }
   }
 
   return (
-    <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+    <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
       {status.type !== "idle" && (
         <div
-          className={`mt-2 rounded-2xl border p-4 text-sm ${
+          role="status"
+          aria-live="polite"
+          className={`rounded-xl border p-4 text-sm ${
             status.type === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-800"
               : status.type === "error"
-                ? "border-rose-200 bg-rose-50 text-rose-800"
-                : "border-slate-200 bg-slate-50 text-slate-700"
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-zinc-200 bg-zinc-50 text-zinc-700"
           }`}
-          role="status"
-          aria-live="polite"
         >
           {status.message}
         </div>
       )}
 
       <div>
-        <label className="text-sm font-semibold text-gray-600">Full Name</label>
+        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">
+          Full Name
+        </label>
         <input
           type="text"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="mt-2 h-14 w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 text-black outline-none focus:border-red-500"
+          className="h-12 w-full rounded-xl border border-zinc-100 bg-[#f5f5f7] px-4 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 transition-all focus:border-zinc-300 focus:ring-2 focus:ring-zinc-100"
         />
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-gray-600">
+        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">
           Email Address
         </label>
         <input
           type="email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
-          className="mt-2 h-14 w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 text-black outline-none focus:border-red-500"
+          className="h-12 w-full rounded-xl border border-zinc-100 bg-[#f5f5f7] px-4 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 transition-all focus:border-zinc-300 focus:ring-2 focus:ring-zinc-100"
         />
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-gray-600">Message</label>
+        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">
+          Message
+        </label>
         <textarea
           value={form.message}
           onChange={(e) => setForm({ ...form, message: e.target.value })}
           rows={5}
-          className="mt-2 w-full rounded-2xl border border-black/10 bg-[#fafafa] p-4 text-black outline-none focus:border-red-500"
           placeholder="Type your message..."
+          className="w-full rounded-xl border border-zinc-100 bg-[#f5f5f7] p-4 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 transition-all focus:border-zinc-300 focus:ring-2 focus:ring-zinc-100 resize-none"
         />
       </div>
 
       <button
         type="submit"
         disabled={status.type === "loading"}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-red-600 py-4 text-white font-semibold hover:bg-red-700 transition disabled:cursor-not-allowed disabled:bg-red-400"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-950 py-3.5 text-sm font-semibold text-white transition-all hover:bg-red-600 hover:shadow-[0_0_24px_rgba(220,38,38,0.3)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {status.type === "loading" ? "Sending..." : "Send Message"}
-        <Send size={18} />
+        <Send size={15} />
       </button>
     </form>
   );

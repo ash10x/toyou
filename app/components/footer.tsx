@@ -3,9 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-
 import { FiMail, FiPhone, FiMapPin, FiArrowUpRight } from "react-icons/fi";
-
 import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
 
 type BusinessInfo = {
@@ -50,19 +48,20 @@ export default function Footer({ businessInfo }: { businessInfo: BusinessInfo })
   ].filter((s): s is { icon: typeof FaFacebookF; href: string } => s !== null);
 
   return (
-    <footer className="relative overflow-hidden bg-black">
-      {/* BACKGROUND GLOW */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-red-600/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-red-700/10 blur-3xl" />
+    <footer className="relative overflow-hidden bg-zinc-950">
+      {/* SUBTLE GLOW */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
+        <div className="absolute -bottom-16 -right-16 h-80 w-80 rounded-full bg-red-700/[0.07] blur-3xl" />
       </div>
 
-      {/* MAIN FOOTER */}
-      <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10">
-        <div className="grid gap-14 lg:grid-cols-[1.3fr_1fr_1fr_1.2fr]">
+      {/* MAIN CONTENT */}
+      <div className="relative mx-auto max-w-7xl px-6 pb-8 pt-20 lg:px-10">
+        <div className="grid gap-12 border-b border-white/[0.06] pb-16 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+
           {/* BRAND */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
@@ -73,28 +72,26 @@ export default function Footer({ businessInfo }: { businessInfo: BusinessInfo })
                 alt="ToYou Logo"
                 width={140}
                 height={60}
-                className="h-auto w-35 transition-all duration-300"
+                className="h-auto w-32 opacity-90 transition-opacity hover:opacity-100"
               />
             </Link>
 
-            <p className="mt-6 max-w-sm leading-relaxed text-gray-400">
+            <p className="mt-6 max-w-xs text-sm leading-relaxed text-zinc-400">
               Experience premium vehicle rentals with comfort, reliability, and
-              exceptional customer service tailored to your journey.
+              exceptional service tailored to every journey.
             </p>
 
-            {/* SOCIALS */}
             {socials.length > 0 && (
-              <div className="mt-8 flex items-center gap-4">
+              <div className="mt-8 flex items-center gap-3">
                 {socials.map((social, index) => {
                   const Icon = social.icon;
-
                   return (
                     <Link
                       key={index}
                       href={social.href}
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white transition-all duration-300 hover:-translate-y-1 hover:border-red-500 hover:bg-red-600"
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-400 transition-all duration-200 hover:border-red-500/40 hover:bg-red-600 hover:text-white"
                     >
-                      <Icon size={18} />
+                      <Icon size={15} />
                     </Link>
                   );
                 })}
@@ -104,52 +101,52 @@ export default function Footer({ businessInfo }: { businessInfo: BusinessInfo })
 
           {/* QUICK LINKS */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="text-xl font-bold text-white">Quick Links</h3>
-
-            <div className="mt-6 space-y-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+              Quick Links
+            </p>
+            <div className="mt-5 space-y-3">
               {quickLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="group flex items-center gap-2 text-gray-400 transition-all duration-300 hover:text-red-500"
+                  className="group flex items-center gap-2 text-sm text-zinc-400 transition-colors duration-200 hover:text-white"
                 >
                   <FiArrowUpRight
-                    size={16}
-                    className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                    size={14}
+                    className="text-zinc-600 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-red-500"
                   />
-
                   {link.name}
                 </Link>
               ))}
             </div>
           </motion.div>
 
-          {/* Legal Links */}
+          {/* LEGAL */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <h3 className="text-xl font-bold text-white">Legal Links</h3>
-
-            <div className="mt-6 space-y-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+              Legal
+            </p>
+            <div className="mt-5 space-y-3">
               {legalLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="group flex items-center gap-2 text-gray-400 transition-all duration-300 hover:text-red-500"
+                  className="group flex items-center gap-2 text-sm text-zinc-400 transition-colors duration-200 hover:text-white"
                 >
                   <FiArrowUpRight
-                    size={16}
-                    className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                    size={14}
+                    className="text-zinc-600 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-red-500"
                   />
-
                   {link.name}
                 </Link>
               ))}
@@ -158,65 +155,53 @@ export default function Footer({ businessInfo }: { businessInfo: BusinessInfo })
 
           {/* CONTACT */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            <h3 className="text-xl font-bold text-white">Contact Us</h3>
-
-            <div className="mt-6 space-y-5">
-              {/* PHONE */}
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+              Contact
+            </p>
+            <div className="mt-5 space-y-4">
               {phone && (
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
-                    <FiPhone size={18} />
+                <a
+                  href={`tel:${phone.replace(/\D/g, "")}`}
+                  className="group flex items-start gap-3 text-sm text-zinc-400 transition-colors hover:text-white"
+                >
+                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-red-500 ring-1 ring-white/10">
+                    <FiPhone size={14} />
                   </div>
-
                   <div>
-                    <p className="text-sm text-gray-500">Phone</p>
-
-                    <a
-                      href={`tel:${phone.replace(/\D/g, "")}`}
-                      className="mt-1 block text-white transition-colors hover:text-red-500"
-                    >
-                      {phone}
-                    </a>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-600">Phone</p>
+                    <p className="mt-0.5 group-hover:text-white">{phone}</p>
                   </div>
-                </div>
+                </a>
               )}
 
-              {/* EMAIL */}
               {email && (
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
-                    <FiMail size={18} />
+                <a
+                  href={`mailto:${email}`}
+                  className="group flex items-start gap-3 text-sm text-zinc-400 transition-colors hover:text-white"
+                >
+                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-red-500 ring-1 ring-white/10">
+                    <FiMail size={14} />
                   </div>
-
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
-
-                    <a
-                      href={`mailto:${email}`}
-                      className="mt-1 block text-white transition-colors hover:text-red-500"
-                    >
-                      {email}
-                    </a>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-600">Email</p>
+                    <p className="mt-0.5 group-hover:text-white">{email}</p>
                   </div>
-                </div>
+                </a>
               )}
 
-              {/* LOCATION */}
               {address && (
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/15 text-red-500">
-                    <FiMapPin size={18} />
+                <div className="flex items-start gap-3 text-sm text-zinc-400">
+                  <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/[0.04] text-red-500 ring-1 ring-white/10">
+                    <FiMapPin size={14} />
                   </div>
-
                   <div>
-                    <p className="text-sm text-gray-500">Location</p>
-
-                    <p className="mt-1 text-white">{address}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-600">Location</p>
+                    <p className="mt-0.5">{address}</p>
                   </div>
                 </div>
               )}
@@ -226,32 +211,34 @@ export default function Footer({ businessInfo }: { businessInfo: BusinessInfo })
 
         {/* NEWSLETTER */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-20 rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur-2xl"
+          transition={{ delay: 0.35 }}
+          className="mt-12 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8"
         >
           <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h3 className="text-3xl font-black text-white">Stay Updated</h3>
-
-              <p className="mt-3 max-w-xl text-gray-400">
-                Subscribe to receive exclusive rental deals, offers, and updates
-                from ToYou Car Rentals.
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-red-500">
+                Newsletter
+              </p>
+              <h3 className="mt-3 text-2xl font-black tracking-tight text-white">
+                Stay in the Loop
+              </h3>
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-zinc-400">
+                Exclusive deals, fleet updates, and rental offers — delivered to your inbox.
               </p>
             </div>
 
-            <form className="flex w-full max-w-xl flex-col gap-4 sm:flex-row">
+            <form className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
               <input
                 type="email"
-                placeholder="Enter your email address"
-                className="h-14 flex-1 rounded-2xl border border-white/10 bg-white/10 px-5 text-white outline-none backdrop-blur-xl placeholder:text-gray-500 focus:border-red-500"
+                placeholder="your@email.com"
+                className="h-12 flex-1 rounded-xl border border-white/10 bg-white/[0.05] px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10"
               />
-
               <button
                 type="submit"
-                className="h-14 rounded-2xl bg-red-600 px-8 font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-red-700 hover:shadow-[0_0_30px_rgba(220,38,38,0.45)]"
+                className="h-12 rounded-xl bg-red-600 px-6 text-sm font-semibold text-white transition-all hover:bg-red-700 hover:shadow-[0_0_20px_rgba(220,38,38,0.35)]"
               >
                 Subscribe
               </button>
@@ -259,24 +246,17 @@ export default function Footer({ businessInfo }: { businessInfo: BusinessInfo })
           </div>
         </motion.div>
 
-        {/* BOTTOM */}
-        <div className="mt-14 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 text-center md:flex-row">
-          <p className="text-sm text-gray-500">
+        {/* BOTTOM BAR */}
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 text-center md:flex-row">
+          <p className="text-xs text-zinc-600">
             © {new Date().getFullYear()} ToYou Car Rentals. All rights reserved.
           </p>
-
-          <div className="flex items-center gap-6 text-sm text-gray-500">
-            <Link
-              href="/privacy-policy"
-              className="transition-colors hover:text-red-500"
-            >
+          <div className="flex items-center gap-5">
+            <Link href="/privacy" className="text-xs text-zinc-600 transition-colors hover:text-zinc-400">
               Privacy Policy
             </Link>
-
-            <Link
-              href="/terms"
-              className="transition-colors hover:text-red-500"
-            >
+            <span className="h-3 w-px bg-zinc-800" />
+            <Link href="/terms" className="text-xs text-zinc-600 transition-colors hover:text-zinc-400">
               Terms & Conditions
             </Link>
           </div>
