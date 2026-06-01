@@ -1,6 +1,6 @@
-const EMAIL_FROM = process.env.EMAIL_FROM ?? "no-reply@toyocar.com";
+const EMAIL_FROM = process.env.EMAIL_FROM ?? "contact@toyoucarrentals.com";
 const ADMIN_EMAIL =
-  process.env.CONTACT_NOTIFICATION_EMAIL ?? "support@toyocar.com";
+  process.env.CONTACT_NOTIFICATION_EMAIL ?? "contact@toyoucarrentals.com";
 
 async function sendMail(options: {
   to: string;
