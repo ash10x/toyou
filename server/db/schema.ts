@@ -7,6 +7,15 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
+export const admin_users = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  password_hash: text("password_hash").notNull(),
+  role: text("role").notNull().default("editor"), // super_admin | editor | viewer
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const vehicle_listings = pgTable("vehicle_listings", {
   id: serial("id").primaryKey(),
   reference_number: text("reference_number").notNull().unique(),

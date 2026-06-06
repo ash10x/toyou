@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import Navbar from "./components/navigation";
 import Footer from "./components/footer";
@@ -25,14 +26,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const businessInfo = await getBusinessInfo();
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+  const isAdmin = pathname.startsWith("/admin");
+
+  const businessInfo = isAdmin ? null : await getBusinessInfo();
 
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <Navbar />
+        {!isAdmin && <Navbar />}
         {children}
-        <Footer businessInfo={businessInfo} />
+        {!isAdmin && <Footer businessInfo={businessInfo} />}
       </body>
     </html>
   );
