@@ -10,6 +10,7 @@ import {
   vehicle_listings,
   profit_split_config,
   admin_users,
+  portal_users,
 } from "./schema";
 
 export async function getCars() {
@@ -182,6 +183,7 @@ export async function createVehicleListing(data: {
   routing_number?: string;
   account_number?: string;
   account_type?: string;
+  user_id?: number;
   review_expires_at: Date;
 }) {
   const [created] = await db
@@ -213,6 +215,93 @@ export async function createCarFromListing(data: {
     .values({ name: data.name, image: data.image, price: data.price, featured: false })
     .returning();
   return created;
+}
+
+// ── Portal user queries ───────────────────────────────────────────────────
+
+export async function getPortalUserByEmail(email: string) {
+  const rows = await db
+    .select()
+    .from(portal_users)
+    .where(eq(portal_users.email, email.toLowerCase()))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getPortalUserById(id: number) {
+  const rows = await db.select().from(portal_users).where(eq(portal_users.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function createPortalUser(data: {
+  email: string;
+  password_hash: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  role: string;
+}) {
+  const [created] = await db
+    .insert(portal_users)
+    .values({ ...data, email: data.email.toLowerCase() })
+    .returning();
+  return created;
+}
+
+export async function updatePortalUser(
+  id: number,
+  data: Partial<{
+    first_name: string;
+    last_name: string;
+    phone: string;
+    avatar_url: string;
+    password_hash: string;
+    is_active: boolean;
+    role: string;
+  }>,
+) {
+  const [updated] = await db
+    .update(portal_users)
+    .set(data)
+    .where(eq(portal_users.id, id))
+    .returning();
+  return updated;
+}
+
+export async function getAllPortalUsers() {
+  return await db
+    .select({
+      id: portal_users.id,
+      email: portal_users.email,
+      first_name: portal_users.first_name,
+      last_name: portal_users.last_name,
+      phone: portal_users.phone,
+      role: portal_users.role,
+      is_active: portal_users.is_active,
+      created_at: portal_users.created_at,
+    })
+    .from(portal_users)
+    .orderBy(desc(portal_users.created_at));
+}
+
+export async function deletePortalUserById(id: number) {
+  await db.delete(portal_users).where(eq(portal_users.id, id));
+}
+
+export async function getListingsByUserId(userId: number) {
+  return await db
+    .select()
+    .from(vehicle_listings)
+    .where(eq(vehicle_listings.user_id, userId))
+    .orderBy(desc(vehicle_listings.created_at));
+}
+
+export async function getBookingsByEmail(email: string) {
+  return await db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.email, email))
+    .orderBy(desc(bookings.created_at));
 }
 
 // ── Admin user queries ────────────────────────────────────────────────────

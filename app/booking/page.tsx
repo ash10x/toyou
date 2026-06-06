@@ -34,6 +34,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import AuthModal from "@/app/components/auth-modal";
+
 type Car = {
   id: number;
   name: string;
@@ -79,6 +81,8 @@ function BookingPageContent() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [cars, setCars] = useState<Car[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
@@ -99,6 +103,12 @@ function BookingPageContent() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => setIsAuthenticated(r.ok))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
   useEffect(() => {
@@ -154,6 +164,10 @@ function BookingPageContent() {
 
   const handleBooking = async () => {
     if (!isValid || !car) return;
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     setIsSubmitting(true);
     setBookingError(null);
     try {
@@ -426,6 +440,12 @@ function BookingPageContent() {
           </div>
         </motion.div>
       </section>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        intent="rent"
+      />
     </main>
   );
 }
@@ -527,6 +547,9 @@ function MiniSlider({
   const paused = useRef(false);
   const userSelected = useRef(false);
   const autoRef = useRef<number | null>(null);
+  // Track current index in a ref so interval can read it without stale closure
+  const indexRef = useRef(0);
+  indexRef.current = index;
 
   const currentCar = cars[index];
 
@@ -549,13 +572,11 @@ function MiniSlider({
       stopAuto();
       autoRef.current = window.setInterval(() => {
         if (paused.current) return;
+        const next = (indexRef.current + 1) % cars.length;
+        const nextCar = cars[next];
         setDirection(1);
-        setIndex((i) => {
-          const next = (i + 1) % cars.length;
-          const nextCar = cars[next];
-          if (nextCar) onSelect(nextCar.id);
-          return next;
-        });
+        setIndex(next);
+        if (nextCar) onSelect(nextCar.id);
       }, 3500);
     }
     startAuto();

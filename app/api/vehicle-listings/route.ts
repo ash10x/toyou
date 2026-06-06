@@ -4,6 +4,7 @@ import {
   sendListingConfirmationEmail,
   sendAdminListingNotificationEmail,
 } from "@/server/email";
+import { verifySessionToken as verifyPortalSession, PORTAL_COOKIE } from "@/server/portal-auth";
 
 function generateReferenceNumber(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -41,6 +42,11 @@ export async function POST(request: NextRequest) {
     if (required.some((v) => !v) || isRegisteredOwner === undefined || hasMechanicalIssues === undefined || !mileage) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    // Attach portal user_id if logged in as hoster
+    const portalToken = request.cookies.get(PORTAL_COOKIE)?.value ?? "";
+    const portalSession = await verifyPortalSession(portalToken);
+    const userId = portalSession?.role === "hoster" ? portalSession.userId : undefined;
 
     const referenceNumber = generateReferenceNumber();
     const reviewExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
@@ -90,6 +96,7 @@ export async function POST(request: NextRequest) {
       routing_number: routingNumber || undefined,
       account_number: accountNumber || undefined,
       account_type: accountType || undefined,
+      user_id: userId,
       review_expires_at: reviewExpiresAt,
     });
 

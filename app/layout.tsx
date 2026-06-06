@@ -28,16 +28,21 @@ export default async function RootLayout({
 }>) {
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
-  const isAdmin = pathname.startsWith("/admin");
 
-  const businessInfo = isAdmin ? null : await getBusinessInfo();
+  // Routes that render their own full-screen shell (no site nav/footer)
+  const SHELL_HIDDEN = ["/admin", "/login", "/dashboard", "/hoster", "/profile"];
+  const hideShell = SHELL_HIDDEN.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
+
+  const businessInfo = hideShell ? null : await getBusinessInfo();
 
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        {!isAdmin && <Navbar />}
+        {!hideShell && <Navbar />}
         {children}
-        {!isAdmin && <Footer businessInfo={businessInfo} />}
+        {!hideShell && <Footer businessInfo={businessInfo} />}
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import AuthModal from "@/app/components/auth-modal";
 import {
   User, Car, ClipboardList, Camera, FileText, Target,
   MapPin, Star, ChevronRight, ChevronLeft, Check, Upload,
@@ -728,6 +729,8 @@ export default function ListYourCarPage() {
   const [error, setError] = useState("");
   const [hostPct, setHostPct] = useState(80);
   const [delayDays, setDelayDays] = useState(3);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     fetch("/api/profit-split")
@@ -739,6 +742,16 @@ export default function ListYourCarPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => {
+        const authenticated = r.ok;
+        setIsAuthenticated(authenticated);
+        if (!authenticated) setShowAuthModal(true);
+      })
+      .catch(() => { setIsAuthenticated(false); setShowAuthModal(true); });
+  }, []);
+
   const setField = (key: keyof FormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -747,6 +760,10 @@ export default function ListYourCarPage() {
   const goBack = () => { setDirection(-1); setStep((s) => s - 1); };
 
   const handleSubmit = async () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -968,6 +985,12 @@ export default function ListYourCarPage() {
           )}
         </div>
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        intent="list"
+      />
     </main>
   );
 }

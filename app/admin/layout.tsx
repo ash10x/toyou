@@ -27,6 +27,7 @@ const buildNav = (role: string) => [
   { href: "/admin/locations", label: "Locations", icon: "📍" },
   { href: "/admin/faqs", label: "FAQs", icon: "❓" },
   { href: "/admin/business", label: "Business Info", icon: "⚙" },
+  { href: "/admin/portal-users", label: "Portal Users", icon: "🧑‍💼" },
   ...(role === "super_admin" ? [{ href: "/admin/users", label: "Admin Users", icon: "👥" }] : []),
 ];
 

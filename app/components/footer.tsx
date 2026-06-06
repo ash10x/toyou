@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { FiMail, FiPhone, FiMapPin, FiArrowUpRight } from "react-icons/fi";
 import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
+
+const SHELL_HIDDEN = ["/login", "/dashboard", "/hoster", "/profile", "/admin"];
 
 type BusinessInfo = {
   phone: string | null;
@@ -31,6 +34,12 @@ const legalLinks = [
 ];
 
 export default function Footer({ businessInfo }: { businessInfo: BusinessInfo }) {
+  const pathname = usePathname();
+
+  if (SHELL_HIDDEN.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+    return null;
+  }
+
   const phone = businessInfo?.phone ?? null;
   const email = businessInfo?.email ?? null;
   const address = businessInfo?.address ?? null;

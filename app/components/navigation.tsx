@@ -3,8 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Menu, X, User, LogOut, LayoutDashboard, Car } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const SHELL_HIDDEN = ["/login", "/dashboard", "/hoster", "/profile", "/admin"];
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -15,15 +18,41 @@ const navLinks = [
   { name: "Contact Us", href: "/contact" },
 ];
 
+type PortalUser = { firstName: string; role: string } | null;
+
 export default function Navbar() {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [portalUser, setPortalUser] = useState<PortalUser>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const hidden = SHELL_HIDDEN.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   useEffect(() => {
+    if (hidden) return;
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [hidden]);
+
+  useEffect(() => {
+    if (hidden) return;
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setPortalUser({ firstName: data.firstName, role: data.role });
+      })
+      .catch(() => {});
+  }, [hidden]);
+
+  if (hidden) return null;
+
+  async function handlePortalLogout() {
+    await fetch("/api/auth/logout", { method: "DELETE" });
+    setPortalUser(null);
+    setUserMenuOpen(false);
+  }
 
   return (
     <>
@@ -85,6 +114,70 @@ export default function Navbar() {
               Book Now
             </Link>
 
+            {/* Portal user menu */}
+            {portalUser ? (
+              <div className="relative hidden md:block">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-3 py-2 text-[13px] font-semibold text-zinc-700 transition-all duration-200 hover:border-red-300 hover:text-red-600"
+                >
+                  <div className="w-5 h-5 rounded-full bg-red-600/10 flex items-center justify-center">
+                    <User size={11} className="text-red-500" />
+                  </div>
+                  {portalUser.firstName}
+                </button>
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-full mt-2 w-48 bg-white border border-zinc-200 rounded-2xl shadow-xl shadow-black/10 overflow-hidden z-50"
+                    >
+                      <div className="px-4 py-3 border-b border-zinc-100">
+                        <p className="text-xs font-semibold text-zinc-900">{portalUser.firstName}</p>
+                        <p className="text-[10px] text-zinc-400 capitalize">{portalUser.role}</p>
+                      </div>
+                      <Link
+                        href={portalUser.role === "hoster" ? "/hoster" : "/dashboard"}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-red-600 transition-colors"
+                      >
+                        {portalUser.role === "hoster" ? <Car size={14} /> : <LayoutDashboard size={14} />}
+                        {portalUser.role === "hoster" ? "Hoster Dashboard" : "My Dashboard"}
+                      </Link>
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-red-600 transition-colors"
+                      >
+                        <User size={14} />
+                        Profile & Settings
+                      </Link>
+                      <div className="border-t border-zinc-100">
+                        <button
+                          onClick={handlePortalLogout}
+                          className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-500 hover:bg-zinc-50 hover:text-red-600 transition-colors"
+                        >
+                          <LogOut size={14} />
+                          Sign out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden items-center gap-2 rounded-full border border-zinc-300 px-4 py-2.5 text-[13px] font-semibold text-zinc-700 transition-all duration-200 hover:border-red-300 hover:text-red-600 md:flex"
+              >
+                <User size={13} />
+                Sign In
+              </Link>
+            )}
+
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
@@ -137,13 +230,43 @@ export default function Navbar() {
                 transition={{ delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
                 className="flex flex-col gap-3"
               >
-                <Link
-                  href="/list-your-car"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex w-full items-center justify-center rounded-2xl border border-white/15 py-4 text-base font-semibold text-white transition-all hover:border-red-500/50 hover:text-red-400"
-                >
-                  List Your Car
-                </Link>
+                {portalUser ? (
+                  <>
+                    <Link
+                      href={portalUser.role === "hoster" ? "/hoster" : "/dashboard"}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 py-4 text-base font-semibold text-white transition-all hover:border-red-500/50 hover:text-red-400"
+                    >
+                      {portalUser.role === "hoster" ? <Car size={16} /> : <LayoutDashboard size={16} />}
+                      My Dashboard
+                    </Link>
+                    <button
+                      onClick={() => { handlePortalLogout(); setMobileOpen(false); }}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 py-4 text-base font-semibold text-zinc-400 transition-all hover:text-white"
+                    >
+                      <LogOut size={16} />
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 py-4 text-base font-semibold text-white transition-all hover:border-red-500/50 hover:text-red-400"
+                    >
+                      <User size={16} />
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/list-your-car"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex w-full items-center justify-center rounded-2xl border border-white/10 py-3 text-sm font-semibold text-zinc-400 transition-all hover:border-zinc-600 hover:text-zinc-200"
+                    >
+                      List Your Car
+                    </Link>
+                  </>
+                )}
                 <Link
                   href="/booking?from=nav"
                   onClick={() => setMobileOpen(false)}

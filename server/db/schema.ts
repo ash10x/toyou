@@ -64,6 +64,9 @@ export const vehicle_listings = pgTable("vehicle_listings", {
   street_address: text("street_address").notNull(),
   location_zip: text("location_zip").notNull(),
 
+  // Linked portal user (hoster)
+  user_id: integer("user_id"),
+
   // Step 8 — Features
   has_gps: boolean("has_gps").notNull().default(false),
   has_carplay: boolean("has_carplay").notNull().default(false),
@@ -136,6 +139,19 @@ export const profit_split_config = pgTable("profit_split_config", {
   platform_percentage: integer("platform_percentage").notNull().default(20),
   payment_delay_days: integer("payment_delay_days").notNull().default(3),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const portal_users = pgTable("portal_users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  password_hash: text("password_hash").notNull(),
+  first_name: text("first_name").notNull(),
+  last_name: text("last_name").notNull(),
+  phone: text("phone"),
+  role: text("role").notNull().default("renter"), // renter | hoster
+  avatar_url: text("avatar_url"),
+  is_active: boolean("is_active").notNull().default(true),
+  created_at: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const bookings = pgTable("bookings", {
