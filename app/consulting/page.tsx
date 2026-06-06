@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Check, ArrowRight, TrendingUp, Shield, Users, Clock,
-  Star, ChevronRight, Car,
+  Check,
+  ArrowRight,
+  TrendingUp,
+  Shield,
+  Users,
+  Clock,
+  Star,
+  ChevronRight,
+  Car,
 } from "lucide-react";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -128,7 +135,15 @@ const startupIncludes = [
 
 // ─── Fade-in wrapper ──────────────────────────────────────────────────────────
 
-function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+function FadeIn({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -147,7 +162,6 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 export default function ConsultingPage() {
   return (
     <main className="bg-zinc-950 text-white">
-
       {/* ── HERO ── */}
       <section className="relative overflow-hidden px-6 pb-20 pt-36">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(220,38,38,0.12),transparent)]" />
@@ -161,14 +175,16 @@ export default function ConsultingPage() {
               Consulting &amp; Mentorship
             </span>
             <h1 className="mb-5 text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-              Car Rental Business<br />
-              <span className="text-red-500">Consulting &amp; Mentorship</span>
+              Consulting &amp; Mentorship
             </h1>
             <p className="mx-auto mb-4 max-w-2xl text-lg leading-relaxed text-zinc-400">
               Learn How to Build a Profitable Car Rental Business
             </p>
             <p className="mx-auto mb-10 max-w-2xl text-sm leading-relaxed text-zinc-500">
-              Whether you're purchasing your first vehicle, adding to your fleet, or building a full-scale rental business — our consulting services provide real-world experience, proven systems, and practical strategies to help you succeed.
+              Whether you're purchasing your first vehicle, adding to your
+              fleet, or building a full-scale rental business — our consulting
+              services provide real-world experience, proven systems, and
+              practical strategies to help you succeed.
             </p>
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
@@ -193,8 +209,12 @@ export default function ConsultingPage() {
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
           {stats.map((s, i) => (
             <FadeIn key={s.label} delay={i * 0.07} className="text-center">
-              <p className="text-2xl font-black text-red-500 sm:text-3xl">{s.value}</p>
-              <p className="mt-1 text-[11px] leading-tight text-zinc-500">{s.label}</p>
+              <p className="text-2xl font-black text-red-500 sm:text-3xl">
+                {s.value}
+              </p>
+              <p className="mt-1 text-[11px] leading-tight text-zinc-500">
+                {s.label}
+              </p>
             </FadeIn>
           ))}
         </div>
@@ -204,8 +224,12 @@ export default function ConsultingPage() {
       <section className="px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <FadeIn className="mb-12 text-center">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Why Work With Us?</h2>
-            <p className="mt-3 text-sm text-zinc-500">We don't teach theory. We teach real-world experience.</p>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Why Work With Us?
+            </h2>
+            <p className="mt-3 text-sm text-zinc-500">
+              We don't teach theory. We teach real-world experience.
+            </p>
           </FadeIn>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {highlights.map((h, i) => (
@@ -214,7 +238,9 @@ export default function ConsultingPage() {
                   <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-600/20">
                     <Check size={11} className="text-red-400" />
                   </span>
-                  <span className="text-sm leading-relaxed text-zinc-300">{h}</span>
+                  <span className="text-sm leading-relaxed text-zinc-300">
+                    {h}
+                  </span>
                 </div>
               </FadeIn>
             ))}
@@ -229,8 +255,13 @@ export default function ConsultingPage() {
             <span className="mb-3 inline-block rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-red-400">
               Consultation Options
             </span>
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Choose Your Package</h2>
-            <p className="mt-3 text-sm text-zinc-500">Select the session that best matches where you are in your journey.</p>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+              Choose Your Package
+            </h2>
+            <p className="mt-3 text-sm text-zinc-500">
+              Select the session that best matches where you are in your
+              journey.
+            </p>
           </FadeIn>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {tiers.map((tier, i) => {
@@ -239,17 +270,23 @@ export default function ConsultingPage() {
               const isPremium = tier.tag === "Premium";
               return (
                 <FadeIn key={tier.name} delay={i * 0.1}>
-                  <div className={`relative flex h-full flex-col overflow-hidden rounded-2xl border p-7 transition-all hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] ${
-                    isPopular
-                      ? "border-red-500 bg-gradient-to-b from-red-950/40 to-zinc-900/80"
-                      : isPremium
-                      ? "border-white/20 bg-zinc-900/60"
-                      : "border-white/[0.08] bg-zinc-900/40"
-                  }`}>
+                  <div
+                    className={`relative flex h-full flex-col overflow-hidden rounded-2xl border p-7 transition-all hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] ${
+                      isPopular
+                        ? "border-red-500 bg-gradient-to-b from-red-950/40 to-zinc-900/80"
+                        : isPremium
+                          ? "border-white/20 bg-zinc-900/60"
+                          : "border-white/[0.08] bg-zinc-900/40"
+                    }`}
+                  >
                     {tier.tag && (
-                      <div className={`absolute right-5 top-5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                        isPopular ? "bg-red-600 text-white" : "border border-white/20 text-zinc-400"
-                      }`}>
+                      <div
+                        className={`absolute right-5 top-5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                          isPopular
+                            ? "bg-red-600 text-white"
+                            : "border border-white/20 text-zinc-400"
+                        }`}
+                      >
                         {tier.tag}
                       </div>
                     )}
@@ -257,15 +294,29 @@ export default function ConsultingPage() {
                       <Icon size={20} className="text-red-400" />
                     </div>
                     <h3 className="mb-1 text-xl font-bold">{tier.name}</h3>
-                    <p className="mb-4 text-xs text-zinc-500">{tier.duration}</p>
-                    <p className={`mb-6 text-4xl font-black ${isPopular ? "text-red-400" : "text-white"}`}>{tier.price}</p>
+                    <p className="mb-4 text-xs text-zinc-500">
+                      {tier.duration}
+                    </p>
+                    <p
+                      className={`mb-6 text-4xl font-black ${isPopular ? "text-red-400" : "text-white"}`}
+                    >
+                      {tier.price}
+                    </p>
 
                     <div className="mb-5">
-                      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Perfect for</p>
+                      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        Perfect for
+                      </p>
                       <ul className="space-y-2">
                         {tier.perfectFor.map((p) => (
-                          <li key={p} className="flex items-start gap-2 text-sm text-zinc-400">
-                            <ChevronRight size={14} className="mt-0.5 flex-shrink-0 text-red-500" />
+                          <li
+                            key={p}
+                            className="flex items-start gap-2 text-sm text-zinc-400"
+                          >
+                            <ChevronRight
+                              size={14}
+                              className="mt-0.5 flex-shrink-0 text-red-500"
+                            />
                             {p}
                           </li>
                         ))}
@@ -273,10 +324,15 @@ export default function ConsultingPage() {
                     </div>
 
                     <div className="mb-8 flex-1">
-                      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Includes</p>
+                      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        Includes
+                      </p>
                       <ul className="space-y-2">
                         {tier.includes.map((inc) => (
-                          <li key={inc} className="flex items-start gap-2 text-sm text-zinc-300">
+                          <li
+                            key={inc}
+                            className="flex items-start gap-2 text-sm text-zinc-300"
+                          >
                             <span className="mt-1 flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-red-600/20">
                               <Check size={9} className="text-red-400" />
                             </span>
@@ -314,25 +370,39 @@ export default function ConsultingPage() {
                   <span className="mb-4 inline-block rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-red-400">
                     Recommended Startup Investment
                   </span>
-                  <p className="mb-2 text-sm text-zinc-500">Typical beginner investment starting at approximately:</p>
-                  <p className="mb-4 text-6xl font-black text-white">$9,800<span className="text-red-500">+</span></p>
+                  <p className="mb-2 text-sm text-zinc-500">
+                    Typical beginner investment starting at approximately:
+                  </p>
+                  <p className="mb-4 text-6xl font-black text-white">
+                    $9,800<span className="text-red-500">+</span>
+                  </p>
                   <p className="text-xs leading-relaxed text-zinc-500">
                     Depending on vehicle selection and market conditions.
                   </p>
                   <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
                     <div className="flex items-start gap-2">
-                      <Shield size={14} className="mt-0.5 flex-shrink-0 text-amber-400" />
+                      <Shield
+                        size={14}
+                        className="mt-0.5 flex-shrink-0 text-amber-400"
+                      />
                       <p className="text-xs leading-relaxed text-amber-300">
-                        We strongly recommend operating through an <strong>LLC</strong> for liability protection and business organization.
+                        We strongly recommend operating through an{" "}
+                        <strong>LLC</strong> for liability protection and
+                        business organization.
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="px-8 py-10">
-                  <p className="mb-5 text-sm font-semibold text-zinc-400">Potential setup may include:</p>
+                  <p className="mb-5 text-sm font-semibold text-zinc-400">
+                    Potential setup may include:
+                  </p>
                   <ul className="space-y-3">
                     {startupIncludes.map((item) => (
-                      <li key={item} className="flex items-center gap-3 text-sm text-zinc-300">
+                      <li
+                        key={item}
+                        className="flex items-center gap-3 text-sm text-zinc-300"
+                      >
                         <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-600/20">
                           <Check size={11} className="text-red-400" />
                         </span>
@@ -351,7 +421,9 @@ export default function ConsultingPage() {
       <section className="border-y border-white/[0.06] bg-white/[0.01] px-6 py-20">
         <div className="mx-auto max-w-4xl">
           <FadeIn className="mb-12 text-center">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">What You'll Learn</h2>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+              What You'll Learn
+            </h2>
           </FadeIn>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {whatYouLearn.map((item, i) => (
@@ -360,7 +432,9 @@ export default function ConsultingPage() {
                   <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-600/15 text-xs font-bold text-red-400">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="text-sm font-medium text-zinc-200">{item}</span>
+                  <span className="text-sm font-medium text-zinc-200">
+                    {item}
+                  </span>
                 </div>
               </FadeIn>
             ))}
@@ -382,10 +456,12 @@ export default function ConsultingPage() {
                   Schedule Your Consultation Today
                 </h2>
                 <p className="mb-4 text-sm leading-relaxed text-zinc-400">
-                  Learn the good, the bad, and the ugly of the car rental business from someone who has experienced it firsthand.
+                  Learn the good, the bad, and the ugly of the car rental
+                  business from someone who has experienced it firsthand.
                 </p>
                 <p className="mb-8 text-sm text-zinc-500">
-                  Start with a Discovery Call or book a full Strategy Session today.
+                  Start with a Discovery Call or book a full Strategy Session
+                  today.
                 </p>
                 <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                   <Link
@@ -419,9 +495,12 @@ export default function ConsultingPage() {
                 <Car size={26} className="text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="mb-1 text-lg font-bold">Interested in becoming a ToYou Host?</h3>
+                <h3 className="mb-1 text-lg font-bold">
+                  Interested in becoming a ToYou Host?
+                </h3>
                 <p className="text-sm text-zinc-500">
-                  Already own a vehicle? List it with us and start earning. No consultation needed to get started.
+                  Already own a vehicle? List it with us and start earning. No
+                  consultation needed to get started.
                 </p>
               </div>
               <Link
@@ -434,7 +513,6 @@ export default function ConsultingPage() {
           </FadeIn>
         </div>
       </section>
-
     </main>
   );
 }
