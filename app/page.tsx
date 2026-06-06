@@ -14,11 +14,14 @@ import {
   ArrowRight,
   CalendarDays,
   Car,
+  Check,
   Clock3,
+  DollarSign,
   MapPin,
   ShieldCheck,
   Star,
   Sparkles,
+  TrendingUp,
   Users,
   Fuel,
   ChevronRight,
@@ -386,6 +389,104 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── LIST YOUR CAR ─────────────────────────── */}
+      <section className="relative overflow-hidden bg-white py-28">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-16 top-0 h-[28rem] w-[28rem] rounded-full bg-red-600/6 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-zinc-900/4 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+          <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">
+                Become a Host
+              </p>
+              <h2 className="mt-4 text-5xl font-black tracking-tighter text-zinc-950 md:text-6xl">
+                List Your Car.
+                <span className="mt-1 block text-red-600">Earn Passively.</span>
+              </h2>
+              <p className="mt-6 max-w-lg text-base leading-relaxed text-zinc-500">
+                Turn your idle vehicle into a revenue-generating asset. ToYou handles all operations — you simply collect your share.
+              </p>
+
+              <div className="mt-8 inline-flex items-center gap-5 rounded-2xl border border-red-100 bg-red-50 px-6 py-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-600 shadow-lg shadow-red-200">
+                  <DollarSign size={22} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-red-600">Profit Split</p>
+                  <p className="mt-0.5 text-2xl font-black text-zinc-950">
+                    80%{" "}
+                    <span className="text-base font-medium text-zinc-400">You</span>
+                    <span className="mx-3 text-zinc-300">·</span>
+                    20%{" "}
+                    <span className="text-base font-medium text-zinc-400">ToYou</span>
+                  </p>
+                </div>
+              </div>
+
+              <ul className="mt-8 space-y-3">
+                {[
+                  "You keep 80% of every dollar earned",
+                  "We manage bookings, customers & logistics",
+                  "GPS tracking & full asset protection included",
+                  "No prior experience needed — we handle it all",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-zinc-600">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                      <Check size={11} />
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/list-your-car"
+                className="mt-10 inline-flex items-center gap-2 rounded-full bg-zinc-950 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_0_28px_rgba(220,38,38,0.35)]"
+              >
+                List Your Vehicle
+                <ArrowRight size={15} />
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+              className="grid grid-cols-2 gap-4"
+            >
+              {[
+                { label: "Your Share", value: "80%", sub: "of all rental revenue", accent: true },
+                { label: "ToYou Fee", value: "20%", sub: "operations & management", accent: false },
+                { label: "Vehicles Co-Hosted", value: "25+", sub: "and growing", accent: false },
+                { label: "Monthly Peak Revenue", value: "$50K+", sub: "across our fleet", accent: true },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-zinc-100 bg-zinc-50 p-6 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+                >
+                  <p className={`text-3xl font-black ${stat.accent ? "text-red-600" : "text-zinc-950"}`}>
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                    {stat.label}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-zinc-400">{stat.sub}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* ── WHY US ──────────────────────────────── */}
       <section className="relative overflow-hidden bg-zinc-950 py-28">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -425,6 +526,99 @@ export default function LandingPage() {
                 </motion.div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONSULTING ─────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#f5f5f7] py-28">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-red-600/6 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-zinc-900/4 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+          <div className="mb-16 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">
+              Expert Guidance
+            </p>
+            <h2 className="mt-4 text-5xl font-black tracking-tighter text-zinc-950 md:text-6xl">
+              Consulting & Mentorship
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-zinc-500">
+              Learn how to build a profitable car rental business — including how to structure investor deals with our proven 80:20 profit split model.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                name: "Discovery Call",
+                price: "$99",
+                duration: "15 Minutes",
+                Icon: Clock3,
+                desc: "Perfect for understanding the business and investment requirements.",
+                popular: false,
+              },
+              {
+                name: "Strategy Session",
+                price: "$300",
+                duration: "60 Minutes",
+                Icon: TrendingUp,
+                desc: "One-on-one consulting for new investors, hosts, and business planning.",
+                popular: true,
+              },
+              {
+                name: "Investor & Fleet",
+                price: "$500",
+                duration: "90 Minutes",
+                Icon: Users,
+                desc: "Advanced consultation for fleet building, investor structuring & scaling.",
+                popular: false,
+              },
+            ].map(({ name, price, duration, Icon, desc, popular }, i) => (
+              <motion.div
+                key={name}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true }}
+                className={`group relative overflow-hidden rounded-3xl border p-8 transition-all duration-500 hover:-translate-y-1.5 ${
+                  popular
+                    ? "border-red-200 bg-white shadow-[0_20px_60px_rgba(220,38,38,0.08)]"
+                    : "border-zinc-100 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.1)]"
+                }`}
+              >
+                {popular && (
+                  <div className="absolute right-5 top-5 rounded-full bg-red-600 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                    Most Popular
+                  </div>
+                )}
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/10">
+                  <Icon size={22} className="text-red-600" />
+                </div>
+                <h3 className="mt-5 text-xl font-black tracking-tight text-zinc-950">{name}</h3>
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                  {duration}
+                </p>
+                <p className="mt-3 text-4xl font-black text-zinc-950">{price}</p>
+                <p className="mt-4 text-sm leading-relaxed text-zinc-500">{desc}</p>
+                <Link
+                  href="/consulting"
+                  className={`mt-8 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-semibold transition-all duration-300 ${
+                    popular
+                      ? "bg-red-600 text-white hover:bg-red-700 hover:shadow-[0_0_24px_rgba(220,38,38,0.3)]"
+                      : "bg-zinc-950 text-white hover:bg-red-600 hover:shadow-[0_0_24px_rgba(220,38,38,0.3)]"
+                  }`}
+                >
+                  Learn More
+                  <ArrowRight
+                    size={15}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5"
+                  />
+                </Link>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

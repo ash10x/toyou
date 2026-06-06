@@ -37,6 +37,7 @@ const highlights = [
   "Revenue experience exceeding $50,000 per month during peak operations",
   "GPS tracking, risk management, and asset protection experience",
   "Rideshare, delivery, long-term, airport, and corporate rental knowledge",
+  "80:20 profit split — investors receive 80% of net rental profits, ToYou retains 20%",
 ];
 
 const tiers = [
@@ -100,6 +101,7 @@ const tiers = [
     includes: [
       "Fleet building strategy",
       "Investor structuring",
+      "80:20 profit split breakdown",
       "Scaling systems",
       "Operations management",
       "Asset protection",
@@ -389,6 +391,21 @@ export default function ConsultingPage() {
                         We strongly recommend operating through an{" "}
                         <strong>LLC</strong> for liability protection and
                         business organization.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
+                    <div className="flex items-start gap-2">
+                      <TrendingUp
+                        size={14}
+                        className="mt-0.5 flex-shrink-0 text-red-400"
+                      />
+                      <p className="text-xs leading-relaxed text-red-300">
+                        All investor partnerships follow our{" "}
+                        <strong>80:20 profit split</strong> — investors receive{" "}
+                        <strong>80%</strong> of net rental profits, with ToYou
+                        retaining <strong>20%</strong> for operations and
+                        management.
                       </p>
                     </div>
                   </div>

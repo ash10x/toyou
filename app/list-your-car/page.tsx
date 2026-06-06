@@ -721,6 +721,13 @@ export default function ListYourCarPage() {
           <p className="mt-3 text-sm leading-relaxed text-zinc-400">
             Earn passive income from your vehicle. Complete all steps and our team will review your application within 72 hours.
           </p>
+          <div className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 backdrop-blur-sm">
+            <span className="text-sm font-black text-red-400">80:20 Profit Split</span>
+            <span className="text-zinc-600">—</span>
+            <span className="text-sm text-zinc-400">
+              You keep <strong className="text-white">80%</strong> of all rental revenue
+            </span>
+          </div>
         </motion.div>
 
         {/* Step indicator */}
