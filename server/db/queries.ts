@@ -191,6 +191,30 @@ export async function createVehicleListing(data: {
   return created;
 }
 
+export function extractFirstPhotoUrl(photoFiles: string): string {
+  if (!photoFiles) return "";
+  for (const part of photoFiles.split(", ")) {
+    const colonIdx = part.indexOf(": ");
+    if (colonIdx !== -1) {
+      const url = part.slice(colonIdx + 2).trim();
+      if (url.startsWith("http")) return url;
+    }
+  }
+  return "";
+}
+
+export async function createCarFromListing(data: {
+  name: string;
+  image: string;
+  price: number;
+}) {
+  const [created] = await db
+    .insert(cars)
+    .values({ name: data.name, image: data.image, price: data.price, featured: false })
+    .returning();
+  return created;
+}
+
 // ── Admin user queries ────────────────────────────────────────────────────
 
 export async function getAllAdminUsers() {

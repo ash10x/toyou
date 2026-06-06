@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       total_price,
     });
 
-    // Send confirmation emails
-    await Promise.all([
+    // Send confirmation emails (fire-and-forget — never block or fail the booking)
+    Promise.all([
       sendBookingConfirmationEmail(
         full_name,
         email,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         dropoff_location,
         total_price,
       ),
-    ]);
+    ]).catch((err) => console.error("Booking email error:", err));
 
     return NextResponse.json(
       {
