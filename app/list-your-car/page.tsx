@@ -6,10 +6,18 @@ import Link from "next/link";
 import {
   User, Car, ClipboardList, Camera, FileText, Target,
   MapPin, Star, ChevronRight, ChevronLeft, Check, Upload,
-  AlertCircle, CheckCircle2,
+  AlertCircle, CheckCircle2, Loader2, X,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type UploadContext = {
+  firstName: string;
+  lastName: string;
+  year: string;
+  make: string;
+  model: string;
+};
 
 type FormData = {
   // Step 1
@@ -21,10 +29,10 @@ type FormData = {
   // Step 3
   titleStatus: string; accidentHistory: string; vehicleCondition: string;
   hasMechanicalIssues: string; mechanicalIssuesDescription: string;
-  // Step 4
-  photoFiles: string[];
-  // Step 5
-  documentFiles: string[];
+  // Step 4 — map of label → Cloudinary URL
+  photoUrls: Record<string, string>;
+  // Step 5 — map of label → Cloudinary URL
+  documentUrls: Record<string, string>;
   // Step 6
   listingReason: string[]; usageFrequency: string; availableDaysPerMonth: string;
   // Step 7
@@ -42,7 +50,7 @@ const initialForm: FormData = {
   color: "", vin: "", licensePlate: "", mileage: "",
   titleStatus: "", accidentHistory: "", vehicleCondition: "",
   hasMechanicalIssues: "", mechanicalIssuesDescription: "",
-  photoFiles: [], documentFiles: [],
+  photoUrls: {}, documentUrls: {},
   listingReason: [], usageFrequency: "", availableDaysPerMonth: "",
   pickupLocationType: "", streetAddress: "", locationZip: "",
   hasGps: false, hasCarplay: false, hasAndroidAuto: false,
@@ -63,7 +71,7 @@ const STEPS = [
   { label: "Features", icon: Star },
 ];
 
-// ─── Small shared components ──────────────────────────────────────────────────
+// ─── Shared UI ────────────────────────────────────────────────────────────────
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -87,15 +95,13 @@ function TextInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
+        className="w-full rounded-xl border border-white/10 bg-white/4 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
       />
     </div>
   );
 }
 
-function RadioCard({
-  label, selected, onClick,
-}: { label: string; selected: boolean; onClick: () => void }) {
+function RadioCard({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -103,10 +109,10 @@ function RadioCard({
       className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
         selected
           ? "border-red-500 bg-red-500/10 text-white"
-          : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-white"
+          : "border-white/10 bg-white/3 text-zinc-400 hover:border-white/20 hover:text-white"
       }`}
     >
-      <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${selected ? "border-red-500 bg-red-500" : "border-zinc-600"}`}>
+      <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${selected ? "border-red-500 bg-red-500" : "border-zinc-600"}`}>
         {selected && <Check size={10} className="text-white" />}
       </span>
       {label}
@@ -114,9 +120,7 @@ function RadioCard({
   );
 }
 
-function CheckCard({
-  label, checked, onChange,
-}: { label: string; checked: boolean; onChange: () => void }) {
+function CheckCard({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
   return (
     <button
       type="button"
@@ -124,10 +128,10 @@ function CheckCard({
       className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
         checked
           ? "border-red-500 bg-red-500/10 text-white"
-          : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-white"
+          : "border-white/10 bg-white/3 text-zinc-400 hover:border-white/20 hover:text-white"
       }`}
     >
-      <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-md border ${checked ? "border-red-500 bg-red-500" : "border-zinc-600"}`}>
+      <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-md border ${checked ? "border-red-500 bg-red-500" : "border-zinc-600"}`}>
         {checked && <Check size={10} className="text-white" />}
       </span>
       {label}
@@ -135,45 +139,128 @@ function CheckCard({
   );
 }
 
-function FileUploadZone({
-  label, accept, multiple, onChange, fileNames, required = true,
-}: {
-  label: string; accept: string; multiple?: boolean;
-  onChange: (names: string[]) => void; fileNames: string[]; required?: boolean;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    onChange(Array.from(files).map((f) => f.name));
-  };
-  return (
-    <div>
-      <FieldLabel>{label}{required && <span className="ml-1 text-red-500">*</span>}</FieldLabel>
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-5 text-center transition-all hover:border-red-500/40 hover:bg-red-500/5"
-      >
-        <Upload size={20} className="text-zinc-500" />
-        <span className="text-xs text-zinc-500">
-          {fileNames.length > 0
-            ? <span className="text-green-400">{fileNames.length} file{fileNames.length !== 1 ? "s" : ""} selected</span>
-            : "Click to select files"}
-        </span>
-        {fileNames.length > 0 && (
-          <span className="text-[11px] text-zinc-600 leading-tight">
-            {fileNames.slice(0, 3).join(", ")}{fileNames.length > 3 ? ` +${fileNames.length - 3} more` : ""}
-          </span>
-        )}
-      </button>
-      <input ref={inputRef} type="file" accept={accept} multiple={multiple} className="hidden" onChange={handleChange} />
-    </div>
-  );
-}
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-red-500">{children}</h3>;
+}
+
+// ─── File Upload Zone ─────────────────────────────────────────────────────────
+// Uploads immediately to Cloudinary via /api/upload.
+// public_id = toyou-listings/{first-last}/{year-make-model}/{label-slug}
+
+type UploadState = "idle" | "uploading" | "done" | "error";
+
+function FileUploadZone({
+  label, accept, required = true, uploadedUrl, onUpload, context,
+}: {
+  label: string;
+  accept: string;
+  required?: boolean;
+  uploadedUrl: string;
+  onUpload: (url: string) => void;
+  context: UploadContext;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [state, setState] = useState<UploadState>(uploadedUrl ? "done" : "idle");
+  const [fileName, setFileName] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    setState("uploading");
+    setErrorMsg("");
+
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("firstName", context.firstName);
+    fd.append("lastName", context.lastName);
+    fd.append("year", context.year);
+    fd.append("make", context.make);
+    fd.append("model", context.model);
+    fd.append("label", label);
+    fd.append("index", "0");
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      onUpload(data.url);
+      setState("done");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Upload failed");
+      setState("error");
+    }
+
+    // reset input so the same file can be re-selected
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const handleClear = () => {
+    setState("idle");
+    setFileName("");
+    setErrorMsg("");
+    onUpload("");
+  };
+
+  return (
+    <div>
+      <FieldLabel>
+        {label}
+        {required && <span className="ml-1 text-red-500">*</span>}
+      </FieldLabel>
+
+      {state === "done" ? (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <Check size={14} className="shrink-0 text-green-400" />
+            <span className="truncate text-xs text-green-400">{fileName || "Uploaded"}</span>
+          </div>
+          <button type="button" onClick={handleClear} className="shrink-0 text-zinc-500 hover:text-white transition-colors">
+            <X size={13} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={state === "uploading"}
+          className={`flex w-full flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-5 text-center transition-all ${
+            state === "error"
+              ? "border-red-500/40 bg-red-500/5"
+              : "border-white/15 bg-white/2 hover:border-red-500/40 hover:bg-red-500/5"
+          } disabled:pointer-events-none`}
+        >
+          {state === "uploading" ? (
+            <>
+              <Loader2 size={18} className="animate-spin text-zinc-400" />
+              <span className="text-xs text-zinc-400">Uploading…</span>
+            </>
+          ) : state === "error" ? (
+            <>
+              <AlertCircle size={18} className="text-red-400" />
+              <span className="text-xs text-red-400">{errorMsg}</span>
+              <span className="text-[10px] text-zinc-500">Click to retry</span>
+            </>
+          ) : (
+            <>
+              <Upload size={18} className="text-zinc-500" />
+              <span className="text-xs text-zinc-500">Click to select</span>
+            </>
+          )}
+        </button>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={handleChange}
+      />
+    </div>
+  );
 }
 
 // ─── Individual Steps ─────────────────────────────────────────────────────────
@@ -198,7 +285,7 @@ function Step1({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
         </div>
         {form.isRegisteredOwner === "no" && (
           <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-300">
-            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <AlertCircle size={14} className="mt-0.5 shrink-0" />
             An owner authorization form will be required during the review process. Our team will contact you.
           </div>
         )}
@@ -279,7 +366,7 @@ function Step3({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
               rows={3}
               value={form.mechanicalIssuesDescription}
               onChange={(e) => set("mechanicalIssuesDescription", e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all resize-none"
+              className="w-full rounded-xl border border-white/10 bg-white/4 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all resize-none"
               placeholder="Describe the current mechanical issues..."
             />
           </div>
@@ -290,63 +377,55 @@ function Step3({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
 }
 
 function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
-  const handleFiles = (newNames: string[]) => {
-    set("photoFiles", [...form.photoFiles, ...newNames]);
+  const ctx: UploadContext = {
+    firstName: form.firstName, lastName: form.lastName,
+    year: form.year, make: form.make, model: form.model,
   };
+
+  const handleUpload = (label: string) => (url: string) => {
+    set("photoUrls", { ...form.photoUrls, [label]: url });
+  };
+
+  const uploadedCount = Object.values(form.photoUrls).filter(Boolean).length;
+
+  const photoSlot = (label: string) => (
+    <FileUploadZone
+      key={label}
+      label={label}
+      accept="image/*"
+      uploadedUrl={form.photoUrls[label] || ""}
+      onUpload={handleUpload(label)}
+      context={ctx}
+    />
+  );
+
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-xs text-zinc-400">
-        Our team will contact you after submission to collect your photos securely. You may also begin selecting files below to keep track of what you have ready.
-      </div>
       <div>
         <SectionTitle>Exterior Photos</SectionTitle>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {["Front", "Rear", "Driver Side", "Passenger Side"].map((label) => (
-            <FileUploadZone
-              key={label}
-              label={label}
-              accept="image/*"
-              fileNames={[]}
-              onChange={(names) => set("photoFiles", [...form.photoFiles, ...names.map(n => `${label}: ${n}`)])}
-            />
-          ))}
+          {["Front", "Rear", "Driver Side", "Passenger Side"].map(photoSlot)}
         </div>
       </div>
       <div>
         <SectionTitle>Interior Photos</SectionTitle>
         <div className="grid grid-cols-3 gap-3">
-          {["Dashboard", "Front Seats", "Rear Seats"].map((label) => (
-            <FileUploadZone
-              key={label}
-              label={label}
-              accept="image/*"
-              fileNames={[]}
-              onChange={(names) => set("photoFiles", [...form.photoFiles, ...names.map(n => `${label}: ${n}`)])}
-            />
-          ))}
+          {["Dashboard", "Front Seats", "Rear Seats"].map(photoSlot)}
         </div>
       </div>
       <div>
         <SectionTitle>Additional Photos</SectionTitle>
         <div className="grid grid-cols-3 gap-3">
-          {["Wheels", "Trunk", "Engine Bay"].map((label) => (
-            <FileUploadZone
-              key={label}
-              label={label}
-              accept="image/*"
-              fileNames={[]}
-              onChange={(names) => set("photoFiles", [...form.photoFiles, ...names.map(n => `${label}: ${n}`)])}
-            />
-          ))}
+          {["Wheels", "Trunk", "Engine Bay"].map(photoSlot)}
         </div>
       </div>
       <p className="text-xs text-zinc-500">
         We recommend at least 10 clear photos. Listings with more photos typically perform better.
       </p>
-      {form.photoFiles.length > 0 && (
+      {uploadedCount > 0 && (
         <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-xs text-green-400">
           <Check size={14} />
-          {form.photoFiles.length} photo{form.photoFiles.length !== 1 ? "s" : ""} logged
+          {uploadedCount} of 10 photos uploaded to Cloudinary
         </div>
       )}
     </div>
@@ -354,37 +433,43 @@ function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
 }
 
 function Step5({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  const ctx: UploadContext = {
+    firstName: form.firstName, lastName: form.lastName,
+    year: form.year, make: form.make, model: form.model,
+  };
+
+  const handleUpload = (label: string) => (url: string) => {
+    set("documentUrls", { ...form.documentUrls, [label]: url });
+  };
+
+  const uploadedCount = Object.values(form.documentUrls).filter(Boolean).length;
+
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-xs text-zinc-400">
-        Our team will securely request your documents after the initial review. You may begin selecting files below to prepare.
-      </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {[
-          { label: "Vehicle Registration", key: "registration" },
-          { label: "Insurance Card", key: "insurance" },
-          { label: "Driver's License", key: "license" },
-        ].map(({ label, key }) => (
+        {["Vehicle Registration", "Insurance Card", "Driver's License"].map((label) => (
           <FileUploadZone
-            key={key}
+            key={label}
             label={label}
             accept=".pdf,.jpg,.jpeg,.png"
-            fileNames={form.documentFiles.filter(f => f.startsWith(`${label}:`))}
-            onChange={(names) => set("documentFiles", [...form.documentFiles, ...names.map(n => `${label}: ${n}`)])}
+            uploadedUrl={form.documentUrls[label] || ""}
+            onUpload={handleUpload(label)}
+            context={ctx}
           />
         ))}
         <FileUploadZone
           label="Vehicle Title"
           accept=".pdf,.jpg,.jpeg,.png"
           required={false}
-          fileNames={form.documentFiles.filter(f => f.startsWith("Vehicle Title:"))}
-          onChange={(names) => set("documentFiles", [...form.documentFiles, ...names.map(n => `Vehicle Title: ${n}`)])}
+          uploadedUrl={form.documentUrls["Vehicle Title"] || ""}
+          onUpload={handleUpload("Vehicle Title")}
+          context={ctx}
         />
       </div>
-      {form.documentFiles.length > 0 && (
+      {uploadedCount > 0 && (
         <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-xs text-green-400">
           <Check size={14} />
-          {form.documentFiles.length} document{form.documentFiles.length !== 1 ? "s" : ""} logged
+          {uploadedCount} document{uploadedCount !== 1 ? "s" : ""} uploaded to Cloudinary
         </div>
       )}
     </div>
@@ -465,12 +550,7 @@ function Step8({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
         <SectionTitle>Does your vehicle have?</SectionTitle>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {features.map(({ label, key }) => (
-            <CheckCard
-              key={key}
-              label={label}
-              checked={form[key] as boolean}
-              onChange={() => set(key, !form[key])}
-            />
+            <CheckCard key={key} label={label} checked={form[key] as boolean} onChange={() => set(key, !form[key])} />
           ))}
         </div>
       </div>
@@ -493,24 +573,15 @@ function Step8({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
 
 function isStepValid(step: number, form: FormData): boolean {
   switch (step) {
-    case 0:
-      return !!(form.firstName && form.lastName && form.phone && form.email && form.city && form.state && form.zipCode && form.isRegisteredOwner);
-    case 1:
-      return !!(form.year && form.make && form.model && form.color && form.vin && form.licensePlate && form.mileage);
-    case 2:
-      return !!(form.titleStatus && form.accidentHistory && form.vehicleCondition && form.hasMechanicalIssues && (form.hasMechanicalIssues === "no" || form.mechanicalIssuesDescription));
-    case 3:
-      return true; // photos optional at this stage
-    case 4:
-      return true; // docs optional at this stage
-    case 5:
-      return !!(form.listingReason.length > 0 && form.usageFrequency && form.availableDaysPerMonth);
-    case 6:
-      return !!(form.pickupLocationType && form.streetAddress && form.locationZip);
-    case 7:
-      return true;
-    default:
-      return true;
+    case 0: return !!(form.firstName && form.lastName && form.phone && form.email && form.city && form.state && form.zipCode && form.isRegisteredOwner);
+    case 1: return !!(form.year && form.make && form.model && form.color && form.vin && form.licensePlate && form.mileage);
+    case 2: return !!(form.titleStatus && form.accidentHistory && form.vehicleCondition && form.hasMechanicalIssues && (form.hasMechanicalIssues === "no" || form.mechanicalIssuesDescription));
+    case 3: return true;
+    case 4: return true;
+    case 5: return !!(form.listingReason.length > 0 && form.usageFrequency && form.availableDaysPerMonth);
+    case 6: return !!(form.pickupLocationType && form.streetAddress && form.locationZip);
+    case 7: return true;
+    default: return true;
   }
 }
 
@@ -542,47 +613,40 @@ export default function ListYourCarPage() {
     setLoading(true);
     setError("");
     try {
+      // Serialise Cloudinary URL maps → comma-separated strings for the API
+      const photoFiles = Object.entries(form.photoUrls)
+        .filter(([, url]) => url)
+        .map(([label, url]) => `${label}: ${url}`)
+        .join(", ");
+      const documentFiles = Object.entries(form.documentUrls)
+        .filter(([, url]) => url)
+        .map(([label, url]) => `${label}: ${url}`)
+        .join(", ");
+
       const res = await fetch("/api/vehicle-listings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          phone: form.phone,
-          email: form.email,
-          city: form.city,
-          state: form.state,
-          zipCode: form.zipCode,
+          firstName: form.firstName, lastName: form.lastName,
+          phone: form.phone, email: form.email,
+          city: form.city, state: form.state, zipCode: form.zipCode,
           isRegisteredOwner: form.isRegisteredOwner === "yes",
-          year: form.year,
-          make: form.make,
-          model: form.model,
-          trim: form.trim,
-          color: form.color,
-          vin: form.vin,
-          licensePlate: form.licensePlate,
-          mileage: form.mileage,
-          titleStatus: form.titleStatus,
-          accidentHistory: form.accidentHistory,
+          year: form.year, make: form.make, model: form.model, trim: form.trim,
+          color: form.color, vin: form.vin, licensePlate: form.licensePlate, mileage: form.mileage,
+          titleStatus: form.titleStatus, accidentHistory: form.accidentHistory,
           vehicleCondition: form.vehicleCondition,
           hasMechanicalIssues: form.hasMechanicalIssues === "yes",
           mechanicalIssuesDescription: form.mechanicalIssuesDescription,
-          photoFiles: form.photoFiles.join(", "),
-          documentFiles: form.documentFiles.join(", "),
+          photoFiles, documentFiles,
           listingReason: form.listingReason,
           usageFrequency: form.usageFrequency,
           availableDaysPerMonth: form.availableDaysPerMonth,
           pickupLocationType: form.pickupLocationType,
-          streetAddress: form.streetAddress,
-          locationZip: form.locationZip,
-          hasGps: form.hasGps,
-          hasCarplay: form.hasCarplay,
-          hasAndroidAuto: form.hasAndroidAuto,
-          hasBackupCamera: form.hasBackupCamera,
-          hasLeatherSeats: form.hasLeatherSeats,
-          hasSunroof: form.hasSunroof,
-          hasThirdRow: form.hasThirdRow,
-          fleetInterest: form.fleetInterest,
+          streetAddress: form.streetAddress, locationZip: form.locationZip,
+          hasGps: form.hasGps, hasCarplay: form.hasCarplay,
+          hasAndroidAuto: form.hasAndroidAuto, hasBackupCamera: form.hasBackupCamera,
+          hasLeatherSeats: form.hasLeatherSeats, hasSunroof: form.hasSunroof,
+          hasThirdRow: form.hasThirdRow, fleetInterest: form.fleetInterest,
         }),
       });
       if (!res.ok) {
@@ -601,14 +665,9 @@ export default function ListYourCarPage() {
 
   const stepProps = { form, set: setField };
   const stepContent = [
-    <Step1 {...stepProps} />,
-    <Step2 {...stepProps} />,
-    <Step3 {...stepProps} />,
-    <Step4 {...stepProps} />,
-    <Step5 {...stepProps} />,
-    <Step6 {...stepProps} />,
-    <Step7 {...stepProps} />,
-    <Step8 {...stepProps} />,
+    <Step1 {...stepProps} />, <Step2 {...stepProps} />, <Step3 {...stepProps} />,
+    <Step4 {...stepProps} />, <Step5 {...stepProps} />, <Step6 {...stepProps} />,
+    <Step7 {...stepProps} />, <Step8 {...stepProps} />,
   ];
 
   if (submitted) {
@@ -625,21 +684,19 @@ export default function ListYourCarPage() {
           </div>
           <h1 className="mb-3 text-3xl font-black tracking-tight text-white">Application Received!</h1>
           <p className="mb-8 text-sm leading-relaxed text-zinc-400">
-            Thank you for applying to become a ToYou host. A confirmation has been sent to <strong className="text-white">{form.email}</strong>. Our team will review your submission within 72 hours.
+            Thank you for applying to become a ToYou host. A confirmation has been sent to{" "}
+            <strong className="text-white">{form.email}</strong>. Our team will review your submission within 72 hours.
           </p>
-          <div className="mb-8 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-8 py-6">
+          <div className="mb-8 rounded-2xl border border-white/8 bg-white/3 px-8 py-6">
             <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-zinc-500">Reference Number</p>
             <p className="text-3xl font-black tracking-widest text-white">{referenceNumber}</p>
             <p className="mt-2 text-xs text-zinc-600">Save this number for any follow-up inquiries</p>
           </div>
           <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/10 px-5 py-4 text-left text-xs leading-relaxed text-amber-300">
             <strong className="block mb-1">What happens next?</strong>
-            Our team will review your vehicle details and may contact you within 72 hours for additional photos, documents, or clarifications before approving your listing.
+            Our team will review your vehicle details and may contact you within 72 hours for any additional information before approving your listing.
           </div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-zinc-950 transition-all hover:bg-zinc-100"
-          >
+          <Link href="/" className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-zinc-950 transition-all hover:bg-zinc-100">
             Return to Home
           </Link>
         </motion.div>
@@ -674,25 +731,22 @@ export default function ListYourCarPage() {
             const active = i === step;
             return (
               <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold transition-all ${done ? "bg-red-600 text-white" : active ? "border-2 border-red-500 bg-red-500/10 text-red-400" : "border border-white/10 bg-white/[0.03] text-zinc-600"}`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold transition-all ${done ? "bg-red-600 text-white" : active ? "border-2 border-red-500 bg-red-500/10 text-red-400" : "border border-white/10 bg-white/3 text-zinc-600"}`}>
                   {done ? <Check size={13} /> : <Icon size={13} />}
                 </div>
                 <span className={`hidden text-[9px] font-semibold uppercase tracking-wider sm:block ${active ? "text-red-400" : done ? "text-zinc-400" : "text-zinc-700"}`}>
                   {s.label}
                 </span>
-                {i < STEPS.length - 1 && (
-                  <div className="absolute" />
-                )}
               </div>
             );
           })}
         </div>
 
         {/* Progress bar */}
-        <div className="mb-8 h-px w-full bg-white/[0.06]">
+        <div className="mb-8 h-px w-full bg-white/6">
           <motion.div
             className="h-full bg-red-600"
-            animate={{ width: `${((step) / (STEPS.length - 1)) * 100}%` }}
+            animate={{ width: `${(step / (STEPS.length - 1)) * 100}%` }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
@@ -704,16 +758,7 @@ export default function ListYourCarPage() {
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Step {step + 1} of {STEPS.length}</p>
               <h2 className="text-lg font-bold text-white">
-                {[
-                  "Owner Information",
-                  "Vehicle Information",
-                  "Vehicle Condition",
-                  "Photo Uploads",
-                  "Document Uploads",
-                  "Owner Goals",
-                  "Vehicle Location",
-                  "Final Questions",
-                ][step]}
+                {["Owner Information","Vehicle Information","Vehicle Condition","Photo Uploads","Document Uploads","Owner Goals","Vehicle Location","Final Questions"][step]}
               </h2>
             </div>
           </div>
@@ -748,8 +793,7 @@ export default function ListYourCarPage() {
             disabled={step === 0}
             className="flex items-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-zinc-400 transition-all hover:border-white/20 hover:text-white disabled:pointer-events-none disabled:opacity-30"
           >
-            <ChevronLeft size={16} />
-            Back
+            <ChevronLeft size={16} /> Back
           </button>
 
           {step < STEPS.length - 1 ? (
@@ -759,8 +803,7 @@ export default function ListYourCarPage() {
               disabled={!isStepValid(step, form)}
               className="flex items-center gap-2 rounded-full bg-red-600 px-7 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 hover:shadow-[0_4px_20px_rgba(220,38,38,0.3)] disabled:pointer-events-none disabled:opacity-40"
             >
-              Continue
-              <ChevronRight size={16} />
+              Continue <ChevronRight size={16} />
             </button>
           ) : (
             <button
@@ -769,8 +812,7 @@ export default function ListYourCarPage() {
               disabled={loading}
               className="flex items-center gap-2 rounded-full bg-red-600 px-8 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 hover:shadow-[0_4px_20px_rgba(220,38,38,0.3)] disabled:pointer-events-none disabled:opacity-60"
             >
-              {loading ? "Submitting..." : "Submit Application"}
-              {!loading && <ChevronRight size={16} />}
+              {loading ? <><Loader2 size={15} className="animate-spin" /> Submitting…</> : <>Submit Application <ChevronRight size={16} /></>}
             </button>
           )}
         </div>
