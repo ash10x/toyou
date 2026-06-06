@@ -1,0 +1,780 @@
+"use client";
+
+import { useState, useRef, ChangeEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import {
+  User, Car, ClipboardList, Camera, FileText, Target,
+  MapPin, Star, ChevronRight, ChevronLeft, Check, Upload,
+  AlertCircle, CheckCircle2,
+} from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type FormData = {
+  // Step 1
+  firstName: string; lastName: string; phone: string; email: string;
+  city: string; state: string; zipCode: string; isRegisteredOwner: string;
+  // Step 2
+  year: string; make: string; model: string; trim: string;
+  color: string; vin: string; licensePlate: string; mileage: string;
+  // Step 3
+  titleStatus: string; accidentHistory: string; vehicleCondition: string;
+  hasMechanicalIssues: string; mechanicalIssuesDescription: string;
+  // Step 4
+  photoFiles: string[];
+  // Step 5
+  documentFiles: string[];
+  // Step 6
+  listingReason: string[]; usageFrequency: string; availableDaysPerMonth: string;
+  // Step 7
+  pickupLocationType: string; streetAddress: string; locationZip: string;
+  // Step 8
+  hasGps: boolean; hasCarplay: boolean; hasAndroidAuto: boolean;
+  hasBackupCamera: boolean; hasLeatherSeats: boolean; hasSunroof: boolean;
+  hasThirdRow: boolean; fleetInterest: string[];
+};
+
+const initialForm: FormData = {
+  firstName: "", lastName: "", phone: "", email: "",
+  city: "", state: "", zipCode: "", isRegisteredOwner: "",
+  year: "", make: "", model: "", trim: "",
+  color: "", vin: "", licensePlate: "", mileage: "",
+  titleStatus: "", accidentHistory: "", vehicleCondition: "",
+  hasMechanicalIssues: "", mechanicalIssuesDescription: "",
+  photoFiles: [], documentFiles: [],
+  listingReason: [], usageFrequency: "", availableDaysPerMonth: "",
+  pickupLocationType: "", streetAddress: "", locationZip: "",
+  hasGps: false, hasCarplay: false, hasAndroidAuto: false,
+  hasBackupCamera: false, hasLeatherSeats: false, hasSunroof: false,
+  hasThirdRow: false, fleetInterest: [],
+};
+
+// ─── Step config ──────────────────────────────────────────────────────────────
+
+const STEPS = [
+  { label: "Owner", icon: User },
+  { label: "Vehicle", icon: Car },
+  { label: "Condition", icon: ClipboardList },
+  { label: "Photos", icon: Camera },
+  { label: "Documents", icon: FileText },
+  { label: "Goals", icon: Target },
+  { label: "Location", icon: MapPin },
+  { label: "Features", icon: Star },
+];
+
+// ─── Small shared components ──────────────────────────────────────────────────
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-zinc-400">
+      {children}
+    </label>
+  );
+}
+
+function TextInput({
+  label, placeholder, value, onChange, type = "text", required = true,
+}: {
+  label: string; placeholder?: string; value: string;
+  onChange: (v: string) => void; type?: string; required?: boolean;
+}) {
+  return (
+    <div>
+      <FieldLabel>{label}{required && <span className="ml-1 text-red-500">*</span>}</FieldLabel>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
+      />
+    </div>
+  );
+}
+
+function RadioCard({
+  label, selected, onClick,
+}: { label: string; selected: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+        selected
+          ? "border-red-500 bg-red-500/10 text-white"
+          : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-white"
+      }`}
+    >
+      <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${selected ? "border-red-500 bg-red-500" : "border-zinc-600"}`}>
+        {selected && <Check size={10} className="text-white" />}
+      </span>
+      {label}
+    </button>
+  );
+}
+
+function CheckCard({
+  label, checked, onChange,
+}: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+        checked
+          ? "border-red-500 bg-red-500/10 text-white"
+          : "border-white/10 bg-white/[0.03] text-zinc-400 hover:border-white/20 hover:text-white"
+      }`}
+    >
+      <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-md border ${checked ? "border-red-500 bg-red-500" : "border-zinc-600"}`}>
+        {checked && <Check size={10} className="text-white" />}
+      </span>
+      {label}
+    </button>
+  );
+}
+
+function FileUploadZone({
+  label, accept, multiple, onChange, fileNames, required = true,
+}: {
+  label: string; accept: string; multiple?: boolean;
+  onChange: (names: string[]) => void; fileNames: string[]; required?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    onChange(Array.from(files).map((f) => f.name));
+  };
+  return (
+    <div>
+      <FieldLabel>{label}{required && <span className="ml-1 text-red-500">*</span>}</FieldLabel>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-5 text-center transition-all hover:border-red-500/40 hover:bg-red-500/5"
+      >
+        <Upload size={20} className="text-zinc-500" />
+        <span className="text-xs text-zinc-500">
+          {fileNames.length > 0
+            ? <span className="text-green-400">{fileNames.length} file{fileNames.length !== 1 ? "s" : ""} selected</span>
+            : "Click to select files"}
+        </span>
+        {fileNames.length > 0 && (
+          <span className="text-[11px] text-zinc-600 leading-tight">
+            {fileNames.slice(0, 3).join(", ")}{fileNames.length > 3 ? ` +${fileNames.length - 3} more` : ""}
+          </span>
+        )}
+      </button>
+      <input ref={inputRef} type="file" accept={accept} multiple={multiple} className="hidden" onChange={handleChange} />
+    </div>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-red-500">{children}</h3>;
+}
+
+// ─── Individual Steps ─────────────────────────────────────────────────────────
+
+function Step1({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextInput label="First Name" value={form.firstName} onChange={(v) => set("firstName", v)} />
+        <TextInput label="Last Name" value={form.lastName} onChange={(v) => set("lastName", v)} />
+        <TextInput label="Phone Number" type="tel" value={form.phone} onChange={(v) => set("phone", v)} />
+        <TextInput label="Email Address" type="email" value={form.email} onChange={(v) => set("email", v)} />
+        <TextInput label="City" value={form.city} onChange={(v) => set("city", v)} />
+        <TextInput label="State" value={form.state} onChange={(v) => set("state", v)} />
+        <TextInput label="ZIP Code" value={form.zipCode} onChange={(v) => set("zipCode", v)} />
+      </div>
+      <div>
+        <FieldLabel>Are you the registered owner?<span className="ml-1 text-red-500">*</span></FieldLabel>
+        <div className="flex gap-3">
+          <RadioCard label="Yes" selected={form.isRegisteredOwner === "yes"} onClick={() => set("isRegisteredOwner", "yes")} />
+          <RadioCard label="No" selected={form.isRegisteredOwner === "no"} onClick={() => set("isRegisteredOwner", "no")} />
+        </div>
+        {form.isRegisteredOwner === "no" && (
+          <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-300">
+            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            An owner authorization form will be required during the review process. Our team will contact you.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Step2({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  const years = Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() - i));
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div>
+          <FieldLabel>Year<span className="ml-1 text-red-500">*</span></FieldLabel>
+          <select
+            value={form.year}
+            onChange={(e) => set("year", e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
+          >
+            <option value="">Select year</option>
+            {years.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+        <TextInput label="Make" placeholder="e.g. Toyota" value={form.make} onChange={(v) => set("make", v)} />
+        <TextInput label="Model" placeholder="e.g. Camry" value={form.model} onChange={(v) => set("model", v)} />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextInput label="Trim" placeholder="e.g. SE, XLE" value={form.trim} onChange={(v) => set("trim", v)} required={false} />
+        <TextInput label="Color" placeholder="e.g. Midnight Black" value={form.color} onChange={(v) => set("color", v)} />
+      </div>
+      <TextInput label="VIN Number" placeholder="17-character VIN" value={form.vin} onChange={(v) => set("vin", v)} />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextInput label="License Plate Number" value={form.licensePlate} onChange={(v) => set("licensePlate", v)} />
+        <TextInput label="Current Mileage" type="number" placeholder="e.g. 42000" value={form.mileage} onChange={(v) => set("mileage", v)} />
+      </div>
+    </div>
+  );
+}
+
+function Step3({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <SectionTitle>Title Status</SectionTitle>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {["Clean Title", "Rebuilt", "Salvage", "Other"].map((opt) => (
+            <RadioCard key={opt} label={opt} selected={form.titleStatus === opt} onClick={() => set("titleStatus", opt)} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>Accident History</SectionTitle>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {["Never involved in accident", "Minor accident", "Major accident"].map((opt) => (
+            <RadioCard key={opt} label={opt} selected={form.accidentHistory === opt} onClick={() => set("accidentHistory", opt)} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>Vehicle Condition</SectionTitle>
+        <div className="grid grid-cols-3 gap-3">
+          {["Excellent", "Good", "Fair"].map((opt) => (
+            <RadioCard key={opt} label={opt} selected={form.vehicleCondition === opt} onClick={() => set("vehicleCondition", opt)} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>Current Mechanical Issues?</SectionTitle>
+        <div className="flex gap-3">
+          <RadioCard label="No" selected={form.hasMechanicalIssues === "no"} onClick={() => set("hasMechanicalIssues", "no")} />
+          <RadioCard label="Yes" selected={form.hasMechanicalIssues === "yes"} onClick={() => set("hasMechanicalIssues", "yes")} />
+        </div>
+        {form.hasMechanicalIssues === "yes" && (
+          <div className="mt-3">
+            <FieldLabel>Please explain the issue(s)<span className="ml-1 text-red-500">*</span></FieldLabel>
+            <textarea
+              rows={3}
+              value={form.mechanicalIssuesDescription}
+              onChange={(e) => set("mechanicalIssuesDescription", e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all resize-none"
+              placeholder="Describe the current mechanical issues..."
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Step4({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  const handleFiles = (newNames: string[]) => {
+    set("photoFiles", [...form.photoFiles, ...newNames]);
+  };
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-xs text-zinc-400">
+        Our team will contact you after submission to collect your photos securely. You may also begin selecting files below to keep track of what you have ready.
+      </div>
+      <div>
+        <SectionTitle>Exterior Photos</SectionTitle>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {["Front", "Rear", "Driver Side", "Passenger Side"].map((label) => (
+            <FileUploadZone
+              key={label}
+              label={label}
+              accept="image/*"
+              fileNames={[]}
+              onChange={(names) => set("photoFiles", [...form.photoFiles, ...names.map(n => `${label}: ${n}`)])}
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>Interior Photos</SectionTitle>
+        <div className="grid grid-cols-3 gap-3">
+          {["Dashboard", "Front Seats", "Rear Seats"].map((label) => (
+            <FileUploadZone
+              key={label}
+              label={label}
+              accept="image/*"
+              fileNames={[]}
+              onChange={(names) => set("photoFiles", [...form.photoFiles, ...names.map(n => `${label}: ${n}`)])}
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>Additional Photos</SectionTitle>
+        <div className="grid grid-cols-3 gap-3">
+          {["Wheels", "Trunk", "Engine Bay"].map((label) => (
+            <FileUploadZone
+              key={label}
+              label={label}
+              accept="image/*"
+              fileNames={[]}
+              onChange={(names) => set("photoFiles", [...form.photoFiles, ...names.map(n => `${label}: ${n}`)])}
+            />
+          ))}
+        </div>
+      </div>
+      <p className="text-xs text-zinc-500">
+        We recommend at least 10 clear photos. Listings with more photos typically perform better.
+      </p>
+      {form.photoFiles.length > 0 && (
+        <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-xs text-green-400">
+          <Check size={14} />
+          {form.photoFiles.length} photo{form.photoFiles.length !== 1 ? "s" : ""} logged
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Step5({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-xs text-zinc-400">
+        Our team will securely request your documents after the initial review. You may begin selecting files below to prepare.
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {[
+          { label: "Vehicle Registration", key: "registration" },
+          { label: "Insurance Card", key: "insurance" },
+          { label: "Driver's License", key: "license" },
+        ].map(({ label, key }) => (
+          <FileUploadZone
+            key={key}
+            label={label}
+            accept=".pdf,.jpg,.jpeg,.png"
+            fileNames={form.documentFiles.filter(f => f.startsWith(`${label}:`))}
+            onChange={(names) => set("documentFiles", [...form.documentFiles, ...names.map(n => `${label}: ${n}`)])}
+          />
+        ))}
+        <FileUploadZone
+          label="Vehicle Title"
+          accept=".pdf,.jpg,.jpeg,.png"
+          required={false}
+          fileNames={form.documentFiles.filter(f => f.startsWith("Vehicle Title:"))}
+          onChange={(names) => set("documentFiles", [...form.documentFiles, ...names.map(n => `Vehicle Title: ${n}`)])}
+        />
+      </div>
+      {form.documentFiles.length > 0 && (
+        <div className="flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-xs text-green-400">
+          <Check size={14} />
+          {form.documentFiles.length} document{form.documentFiles.length !== 1 ? "s" : ""} logged
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Step6({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  const toggleReason = (reason: string) => {
+    const current = form.listingReason;
+    set("listingReason", current.includes(reason) ? current.filter((r) => r !== reason) : [...current, reason]);
+  };
+  return (
+    <div className="space-y-6">
+      <div>
+        <SectionTitle>Why are you listing your vehicle?</SectionTitle>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {["Side income", "Extra cash flow", "Vehicle not being used", "Full-time rental income", "Business fleet"].map((reason) => (
+            <CheckCard key={reason} label={reason} checked={form.listingReason.includes(reason)} onChange={() => toggleReason(reason)} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>How often do you currently use the vehicle?</SectionTitle>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {["Daily", "Weekly", "Monthly", "Rarely", "Almost Never"].map((opt) => (
+            <RadioCard key={opt} label={opt} selected={form.usageFrequency === opt} onClick={() => set("usageFrequency", opt)} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>How many days per month would you like it available?</SectionTitle>
+        <div className="grid grid-cols-3 gap-3">
+          {["1–10 days", "11–20 days", "21–30 days"].map((opt) => (
+            <RadioCard key={opt} label={opt} selected={form.availableDaysPerMonth === opt} onClick={() => set("availableDaysPerMonth", opt)} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step7({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <SectionTitle>Pickup Location Type</SectionTitle>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {["Home", "Business", "Airport Delivery Available", "Other"].map((opt) => (
+            <RadioCard key={opt} label={opt} selected={form.pickupLocationType === opt} onClick={() => set("pickupLocationType", opt)} />
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextInput label="Street Address" value={form.streetAddress} onChange={(v) => set("streetAddress", v)} />
+        <TextInput label="ZIP Code" value={form.locationZip} onChange={(v) => set("locationZip", v)} />
+      </div>
+    </div>
+  );
+}
+
+function Step8({ form, set }: { form: FormData; set: (k: keyof FormData, v: unknown) => void }) {
+  const toggleFleet = (opt: string) => {
+    const current = form.fleetInterest;
+    set("fleetInterest", current.includes(opt) ? current.filter((f) => f !== opt) : [...current, opt]);
+  };
+  const features: { label: string; key: keyof FormData }[] = [
+    { label: "GPS Tracking", key: "hasGps" },
+    { label: "Apple CarPlay", key: "hasCarplay" },
+    { label: "Android Auto", key: "hasAndroidAuto" },
+    { label: "Backup Camera", key: "hasBackupCamera" },
+    { label: "Leather Seats", key: "hasLeatherSeats" },
+    { label: "Sunroof", key: "hasSunroof" },
+    { label: "Third Row Seating", key: "hasThirdRow" },
+  ];
+  return (
+    <div className="space-y-6">
+      <div>
+        <SectionTitle>Does your vehicle have?</SectionTitle>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {features.map(({ label, key }) => (
+            <CheckCard
+              key={key}
+              label={label}
+              checked={form[key] as boolean}
+              onChange={() => set(key, !form[key])}
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        <SectionTitle>How many vehicles are you interested in listing?</SectionTitle>
+        <div className="grid grid-cols-2 gap-3">
+          {["Listing 1 vehicle", "Listing 2–5 vehicles", "Listing 6–10 vehicles", "Listing 10+ vehicles"].map((opt) => (
+            <CheckCard key={opt} label={opt} checked={form.fleetInterest.includes(opt)} onChange={() => toggleFleet(opt)} />
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-zinc-500">
+          Selecting multiple options helps us match you with the right fleet partnership program.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Step validation ──────────────────────────────────────────────────────────
+
+function isStepValid(step: number, form: FormData): boolean {
+  switch (step) {
+    case 0:
+      return !!(form.firstName && form.lastName && form.phone && form.email && form.city && form.state && form.zipCode && form.isRegisteredOwner);
+    case 1:
+      return !!(form.year && form.make && form.model && form.color && form.vin && form.licensePlate && form.mileage);
+    case 2:
+      return !!(form.titleStatus && form.accidentHistory && form.vehicleCondition && form.hasMechanicalIssues && (form.hasMechanicalIssues === "no" || form.mechanicalIssuesDescription));
+    case 3:
+      return true; // photos optional at this stage
+    case 4:
+      return true; // docs optional at this stage
+    case 5:
+      return !!(form.listingReason.length > 0 && form.usageFrequency && form.availableDaysPerMonth);
+    case 6:
+      return !!(form.pickupLocationType && form.streetAddress && form.locationZip);
+    case 7:
+      return true;
+    default:
+      return true;
+  }
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+const variants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+};
+
+export default function ListYourCarPage() {
+  const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [form, setForm] = useState<FormData>(initialForm);
+  const [submitted, setSubmitted] = useState(false);
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const setField = (key: keyof FormData, value: unknown) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const goNext = () => { setDirection(1); setStep((s) => s + 1); };
+  const goBack = () => { setDirection(-1); setStep((s) => s - 1); };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/vehicle-listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phone: form.phone,
+          email: form.email,
+          city: form.city,
+          state: form.state,
+          zipCode: form.zipCode,
+          isRegisteredOwner: form.isRegisteredOwner === "yes",
+          year: form.year,
+          make: form.make,
+          model: form.model,
+          trim: form.trim,
+          color: form.color,
+          vin: form.vin,
+          licensePlate: form.licensePlate,
+          mileage: form.mileage,
+          titleStatus: form.titleStatus,
+          accidentHistory: form.accidentHistory,
+          vehicleCondition: form.vehicleCondition,
+          hasMechanicalIssues: form.hasMechanicalIssues === "yes",
+          mechanicalIssuesDescription: form.mechanicalIssuesDescription,
+          photoFiles: form.photoFiles.join(", "),
+          documentFiles: form.documentFiles.join(", "),
+          listingReason: form.listingReason,
+          usageFrequency: form.usageFrequency,
+          availableDaysPerMonth: form.availableDaysPerMonth,
+          pickupLocationType: form.pickupLocationType,
+          streetAddress: form.streetAddress,
+          locationZip: form.locationZip,
+          hasGps: form.hasGps,
+          hasCarplay: form.hasCarplay,
+          hasAndroidAuto: form.hasAndroidAuto,
+          hasBackupCamera: form.hasBackupCamera,
+          hasLeatherSeats: form.hasLeatherSeats,
+          hasSunroof: form.hasSunroof,
+          hasThirdRow: form.hasThirdRow,
+          fleetInterest: form.fleetInterest,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Submission failed");
+      }
+      const data = await res.json();
+      setReferenceNumber(data.referenceNumber);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stepProps = { form, set: setField };
+  const stepContent = [
+    <Step1 {...stepProps} />,
+    <Step2 {...stepProps} />,
+    <Step3 {...stepProps} />,
+    <Step4 {...stepProps} />,
+    <Step5 {...stepProps} />,
+    <Step6 {...stepProps} />,
+    <Step7 {...stepProps} />,
+    <Step8 {...stepProps} />,
+  ];
+
+  if (submitted) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 py-32">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-lg text-center"
+        >
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/10">
+            <CheckCircle2 size={40} className="text-green-400" />
+          </div>
+          <h1 className="mb-3 text-3xl font-black tracking-tight text-white">Application Received!</h1>
+          <p className="mb-8 text-sm leading-relaxed text-zinc-400">
+            Thank you for applying to become a ToYou host. A confirmation has been sent to <strong className="text-white">{form.email}</strong>. Our team will review your submission within 72 hours.
+          </p>
+          <div className="mb-8 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-8 py-6">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-zinc-500">Reference Number</p>
+            <p className="text-3xl font-black tracking-widest text-white">{referenceNumber}</p>
+            <p className="mt-2 text-xs text-zinc-600">Save this number for any follow-up inquiries</p>
+          </div>
+          <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/10 px-5 py-4 text-left text-xs leading-relaxed text-amber-300">
+            <strong className="block mb-1">What happens next?</strong>
+            Our team will review your vehicle details and may contact you within 72 hours for additional photos, documents, or clarifications before approving your listing.
+          </div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-semibold text-zinc-950 transition-all hover:bg-zinc-100"
+          >
+            Return to Home
+          </Link>
+        </motion.div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-zinc-950 pb-24 pt-32 text-white">
+      <div className="mx-auto max-w-3xl px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-12 text-center"
+        >
+          <span className="mb-3 inline-block rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-red-400">
+            Become a ToYou Host
+          </span>
+          <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">List Your Vehicle</h1>
+          <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+            Earn passive income from your vehicle. Complete all steps and our team will review your application within 72 hours.
+          </p>
+        </motion.div>
+
+        {/* Step indicator */}
+        <div className="mb-10 flex items-center justify-between gap-1">
+          {STEPS.map((s, i) => {
+            const Icon = s.icon;
+            const done = i < step;
+            const active = i === step;
+            return (
+              <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold transition-all ${done ? "bg-red-600 text-white" : active ? "border-2 border-red-500 bg-red-500/10 text-red-400" : "border border-white/10 bg-white/[0.03] text-zinc-600"}`}>
+                  {done ? <Check size={13} /> : <Icon size={13} />}
+                </div>
+                <span className={`hidden text-[9px] font-semibold uppercase tracking-wider sm:block ${active ? "text-red-400" : done ? "text-zinc-400" : "text-zinc-700"}`}>
+                  {s.label}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <div className="absolute" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
+        <div className="mb-8 h-px w-full bg-white/[0.06]">
+          <motion.div
+            className="h-full bg-red-600"
+            animate={{ width: `${((step) / (STEPS.length - 1)) * 100}%` }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </div>
+
+        {/* Form card */}
+        <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-zinc-900/50 p-6 sm:p-8">
+          <div className="mb-6 flex items-center gap-3">
+            {(() => { const Icon = STEPS[step].icon; return <Icon size={18} className="text-red-500" />; })()}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Step {step + 1} of {STEPS.length}</p>
+              <h2 className="text-lg font-bold text-white">
+                {[
+                  "Owner Information",
+                  "Vehicle Information",
+                  "Vehicle Condition",
+                  "Photo Uploads",
+                  "Document Uploads",
+                  "Owner Goals",
+                  "Vehicle Location",
+                  "Final Questions",
+                ][step]}
+              </h2>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {stepContent[step]}
+            </motion.div>
+          </AnimatePresence>
+
+          {error && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              <AlertCircle size={15} />
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="mt-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={goBack}
+            disabled={step === 0}
+            className="flex items-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-zinc-400 transition-all hover:border-white/20 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          >
+            <ChevronLeft size={16} />
+            Back
+          </button>
+
+          {step < STEPS.length - 1 ? (
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={!isStepValid(step, form)}
+              className="flex items-center gap-2 rounded-full bg-red-600 px-7 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 hover:shadow-[0_4px_20px_rgba(220,38,38,0.3)] disabled:pointer-events-none disabled:opacity-40"
+            >
+              Continue
+              <ChevronRight size={16} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-full bg-red-600 px-8 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 hover:shadow-[0_4px_20px_rgba(220,38,38,0.3)] disabled:pointer-events-none disabled:opacity-60"
+            >
+              {loading ? "Submitting..." : "Submit Application"}
+              {!loading && <ChevronRight size={16} />}
+            </button>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

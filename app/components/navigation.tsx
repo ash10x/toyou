@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Cars", href: "/cars" },
+  { name: "Consulting", href: "/consulting" },
   { name: "FAQs", href: "/faqs" },
   { name: "About Us", href: "/about" },
   { name: "Contact Us", href: "/contact" },
@@ -72,6 +73,12 @@ export default function Navbar() {
           {/* RIGHT */}
           <div className="flex items-center gap-3">
             <Link
+              href="/list-your-car"
+              className="hidden rounded-full border border-zinc-300 px-5 py-2.5 text-[13px] font-semibold text-zinc-700 transition-all duration-300 hover:border-red-500 hover:text-red-600 md:inline-flex"
+            >
+              List Your Car
+            </Link>
+            <Link
               href="/booking?from=nav"
               className="hidden rounded-full bg-zinc-950 px-6 py-2.5 text-[13px] font-semibold text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_4px_20px_rgba(220,38,38,0.3)] md:inline-flex"
             >
@@ -128,7 +135,15 @@ export default function Navbar() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col gap-3"
               >
+                <Link
+                  href="/list-your-car"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex w-full items-center justify-center rounded-2xl border border-white/15 py-4 text-base font-semibold text-white transition-all hover:border-red-500/50 hover:text-red-400"
+                >
+                  List Your Car
+                </Link>
                 <Link
                   href="/booking?from=nav"
                   onClick={() => setMobileOpen(false)}

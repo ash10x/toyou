@@ -7,6 +7,68 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
+export const vehicle_listings = pgTable("vehicle_listings", {
+  id: serial("id").primaryKey(),
+  reference_number: text("reference_number").notNull().unique(),
+  status: text("status").notNull().default("pending"),
+
+  // Step 1 — Owner
+  first_name: text("first_name").notNull(),
+  last_name: text("last_name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zip_code: text("zip_code").notNull(),
+  is_registered_owner: boolean("is_registered_owner").notNull(),
+
+  // Step 2 — Vehicle
+  year: text("year").notNull(),
+  make: text("make").notNull(),
+  model: text("model").notNull(),
+  trim: text("trim"),
+  color: text("color").notNull(),
+  vin: text("vin").notNull(),
+  license_plate: text("license_plate").notNull(),
+  mileage: integer("mileage").notNull(),
+
+  // Step 3 — Condition
+  title_status: text("title_status").notNull(),
+  accident_history: text("accident_history").notNull(),
+  vehicle_condition: text("vehicle_condition").notNull(),
+  has_mechanical_issues: boolean("has_mechanical_issues").notNull(),
+  mechanical_issues_description: text("mechanical_issues_description"),
+
+  // Step 4 — Photo file names (comma-separated; actual storage requires cloud setup)
+  photo_files: text("photo_files").notNull().default(""),
+
+  // Step 5 — Document file names
+  document_files: text("document_files").notNull().default(""),
+
+  // Step 6 — Goals
+  listing_reason: text("listing_reason").notNull(),
+  usage_frequency: text("usage_frequency").notNull(),
+  available_days_per_month: text("available_days_per_month").notNull(),
+
+  // Step 7 — Location
+  pickup_location_type: text("pickup_location_type").notNull(),
+  street_address: text("street_address").notNull(),
+  location_zip: text("location_zip").notNull(),
+
+  // Step 8 — Features
+  has_gps: boolean("has_gps").notNull().default(false),
+  has_carplay: boolean("has_carplay").notNull().default(false),
+  has_android_auto: boolean("has_android_auto").notNull().default(false),
+  has_backup_camera: boolean("has_backup_camera").notNull().default(false),
+  has_leather_seats: boolean("has_leather_seats").notNull().default(false),
+  has_sunroof: boolean("has_sunroof").notNull().default(false),
+  has_third_row: boolean("has_third_row").notNull().default(false),
+  fleet_interest: text("fleet_interest"),
+
+  review_expires_at: timestamp("review_expires_at").notNull(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const cars = pgTable("cars", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

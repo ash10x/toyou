@@ -137,6 +137,11 @@ function BookingPageContent() {
   const serviceFee = 10;
   const total = subtotal + serviceFee;
 
+  const minPickupDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const minDropoffDate = form.pickupDate
+    ? new Date(new Date(`${form.pickupDate}T00:00:00`).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
   const isValid =
     form.fullName &&
     form.email &&
@@ -144,7 +149,8 @@ function BookingPageContent() {
     form.pickup &&
     form.dropoff &&
     form.pickupDate &&
-    form.dropoffDate;
+    form.dropoffDate &&
+    rentalDays >= 3;
 
   const handleBooking = async () => {
     if (!isValid || !car) return;
@@ -304,10 +310,10 @@ function BookingPageContent() {
                 options={locations}
               />
               <Input icon={CalendarDays} type="date" value={form.pickupDate}
-                min={new Date().toISOString().split("T")[0]}
-                onChange={(e) => setForm({ ...form, pickupDate: e.target.value })} />
+                min={minPickupDate}
+                onChange={(e) => setForm({ ...form, pickupDate: e.target.value, dropoffDate: "" })} />
               <Input icon={CalendarDays} type="date" value={form.dropoffDate}
-                min={form.pickupDate || new Date().toISOString().split("T")[0]}
+                min={minDropoffDate}
                 onChange={(e) => setForm({ ...form, dropoffDate: e.target.value })} />
             </div>
           </motion.div>

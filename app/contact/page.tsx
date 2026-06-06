@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { getBusinessInfo } from "@/server/db/queries";
 import ContactForm from "./ContactForm";
@@ -43,7 +44,9 @@ export default async function ContactPage() {
           <div className="rounded-2xl border border-zinc-100 bg-white p-8 shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
             <h2 className="text-2xl font-black tracking-tight text-zinc-950">Send a Message</h2>
             <p className="mt-2 text-sm text-zinc-400">We typically respond within a few hours.</p>
-            <ContactForm />
+            <Suspense fallback={null}>
+              <ContactForm />
+            </Suspense>
           </div>
 
           {/* INFO COLUMN */}

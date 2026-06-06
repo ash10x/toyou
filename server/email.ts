@@ -430,6 +430,123 @@ export async function sendBookingConfirmationEmail(
   return sendMail({ to: email, subject, text, html });
 }
 
+export async function sendListingConfirmationEmail(
+  firstName: string,
+  email: string,
+  referenceNumber: string,
+  year: string,
+  make: string,
+  model: string,
+  reviewExpiresAt: Date,
+) {
+  const subject = `Your Vehicle Listing Submission — Ref: ${referenceNumber}`;
+  const reviewDate = reviewExpiresAt.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const text = `Hi ${firstName},\n\nThank you for submitting your ${year} ${make} ${model} for listing with ToYou Car Rentals!\n\nYour reference number is: ${referenceNumber}\n\nOur team will review your submission within 72 hours (by ${reviewDate}). We may reach out if additional information is needed.\n\nBest regards,\nToYou Car Rentals Team`;
+  const html = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:40px 16px;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+              <tr>
+                <td align="center" style="background:#ffffff;padding:36px 24px;">
+                  <img src="https://www.toyoucarrentals.com/_next/image?url=%2Flogo%2Flogo.png&w=256&q=75" alt="ToYou Car Rentals" width="140" style="display:block;border:0;max-width:140px;" />
+                  <p style="margin:20px 0 0;color:#d1d5db;font-size:14px;letter-spacing:1px;text-transform:uppercase;">Vehicle Listing Submission</p>
+                  <h1 style="margin:10px 0 0;color:#000000;font-size:30px;line-height:1.2;">We've Received Your Application</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:40px 32px;">
+                  <p style="margin:0 0 18px;font-size:16px;color:#111827;line-height:1.7;">Hi <strong>${firstName}</strong>,</p>
+                  <p style="margin:0 0 28px;font-size:16px;color:#4b5563;line-height:1.7;">
+                    Thank you for submitting your <strong>${year} ${make} ${model}</strong> for listing with <strong>ToYou Car Rentals</strong>. We've received your application and will begin our review shortly.
+                  </p>
+                  <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:18px;padding:28px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="padding:12px 0;color:#6b7280;font-size:14px;">Reference Number</td>
+                        <td align="right" style="padding:12px 0;color:#111827;font-size:18px;font-weight:800;letter-spacing:1px;">${referenceNumber}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:12px 0;color:#6b7280;font-size:14px;">Vehicle</td>
+                        <td align="right" style="padding:12px 0;color:#111827;font-size:15px;font-weight:700;">${year} ${make} ${model}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding-top:16px;"><div style="height:1px;background:#e5e7eb;"></div></td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:20px;color:#6b7280;font-size:14px;">Review Deadline</td>
+                        <td align="right" style="padding-top:20px;color:#111827;font-size:15px;font-weight:700;">${reviewDate}</td>
+                      </tr>
+                    </table>
+                  </div>
+                  <div style="margin-top:28px;background:#fff7ed;border:1px solid #fdba74;border-radius:16px;padding:20px;">
+                    <p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#9a3412;">What Happens Next?</p>
+                    <p style="margin:0;font-size:14px;line-height:1.7;color:#7c2d12;">
+                      Our team will review your submission within <strong>72 hours</strong>. We may contact you via phone or email if additional documentation or photos are required. Please keep an eye on your inbox.
+                    </p>
+                  </div>
+                  <p style="margin:32px 0 0;font-size:15px;line-height:1.7;color:#4b5563;">Please save your reference number for any follow-up inquiries.</p>
+                  <p style="margin:24px 0 0;font-size:15px;line-height:1.7;color:#111827;">Best regards,<br/><strong>ToYou Car Rentals Team</strong></p>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="background:#f9fafb;padding:24px;border-top:1px solid #e5e7eb;">
+                  <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">© ${new Date().getFullYear()} ToYou Car Rentals. All rights reserved.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>
+  `;
+  return sendMail({ to: email, subject, text, html });
+}
+
+export async function sendAdminListingNotificationEmail(
+  firstName: string,
+  lastName: string,
+  email: string,
+  phone: string,
+  referenceNumber: string,
+  year: string,
+  make: string,
+  model: string,
+  vin: string,
+  city: string,
+  state: string,
+  vehicleCondition: string,
+) {
+  const subject = `New Vehicle Listing Application — ${referenceNumber} — ${year} ${make} ${model}`;
+  const text = `New host application received:\n\nRef: ${referenceNumber}\nOwner: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone}\nLocation: ${city}, ${state}\n\nVehicle: ${year} ${make} ${model}\nVIN: ${vin}\nCondition: ${vehicleCondition}`;
+  const html = `
+    <h2>New Vehicle Listing Application</h2>
+    <div style="background:#f5f5f5;padding:20px;border-radius:8px;margin:20px 0;">
+      <p><strong>Reference:</strong> ${referenceNumber}</p>
+      <hr/>
+      <p><strong>Owner:</strong> ${firstName} ${lastName}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      <p><strong>Location:</strong> ${city}, ${state}</p>
+      <hr/>
+      <p><strong>Vehicle:</strong> ${year} ${make} ${model}</p>
+      <p><strong>VIN:</strong> ${vin}</p>
+      <p><strong>Condition:</strong> ${vehicleCondition}</p>
+    </div>
+    <p style="color:#6b7280;font-size:13px;">Review window: 72 hours from submission.</p>
+  `;
+  return sendMail({ to: ADMIN_EMAIL, subject, text, html });
+}
+
 export async function sendAdminBookingNotificationEmail(
   name: string,
   email: string,

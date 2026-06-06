@@ -7,6 +7,7 @@ import {
   locations,
   bookings,
   business_info,
+  vehicle_listings,
 } from "./schema";
 
 export async function getCars() {
@@ -107,6 +108,54 @@ export async function upsertBusinessInfo(info: Partial<{
     .onConflictDoUpdate({ target: business_info.id, set: info })
     .returning();
   return row;
+}
+
+export async function createVehicleListing(data: {
+  reference_number: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  email: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  is_registered_owner: boolean;
+  year: string;
+  make: string;
+  model: string;
+  trim?: string;
+  color: string;
+  vin: string;
+  license_plate: string;
+  mileage: number;
+  title_status: string;
+  accident_history: string;
+  vehicle_condition: string;
+  has_mechanical_issues: boolean;
+  mechanical_issues_description?: string;
+  photo_files: string;
+  document_files: string;
+  listing_reason: string;
+  usage_frequency: string;
+  available_days_per_month: string;
+  pickup_location_type: string;
+  street_address: string;
+  location_zip: string;
+  has_gps: boolean;
+  has_carplay: boolean;
+  has_android_auto: boolean;
+  has_backup_camera: boolean;
+  has_leather_seats: boolean;
+  has_sunroof: boolean;
+  has_third_row: boolean;
+  fleet_interest?: string;
+  review_expires_at: Date;
+}) {
+  const [created] = await db
+    .insert(vehicle_listings)
+    .values(data)
+    .returning();
+  return created;
 }
 
 export async function createBooking(booking: {
