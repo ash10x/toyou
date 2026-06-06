@@ -8,6 +8,7 @@ import {
   bookings,
   business_info,
   vehicle_listings,
+  profit_split_config,
   admin_users,
 } from "./schema";
 
@@ -93,6 +94,31 @@ export async function getBusinessInfo() {
   return rows[0] ?? null;
 }
 
+export async function getProfitSplitConfig() {
+  const rows = await db
+    .select()
+    .from(profit_split_config)
+    .where(eq(profit_split_config.id, 1))
+    .limit(1);
+  return rows[0] ?? { host_percentage: 80, platform_percentage: 20, payment_delay_days: 3 };
+}
+
+export async function upsertProfitSplitConfig(data: Partial<{
+  host_percentage: number;
+  platform_percentage: number;
+  payment_delay_days: number;
+}>) {
+  const [row] = await db
+    .insert(profit_split_config)
+    .values({ id: 1, ...data, updated_at: new Date() })
+    .onConflictDoUpdate({
+      target: profit_split_config.id,
+      set: { ...data, updated_at: new Date() },
+    })
+    .returning();
+  return row;
+}
+
 export async function upsertBusinessInfo(info: Partial<{
   phone: string;
   email: string;
@@ -150,6 +176,12 @@ export async function createVehicleListing(data: {
   has_sunroof: boolean;
   has_third_row: boolean;
   fleet_interest?: string;
+  payment_method?: string;
+  bank_name?: string;
+  account_holder_name?: string;
+  routing_number?: string;
+  account_number?: string;
+  account_type?: string;
   review_expires_at: Date;
 }) {
   const [created] = await db

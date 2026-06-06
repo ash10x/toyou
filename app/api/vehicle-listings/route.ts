@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       pickupLocationType, streetAddress, locationZip,
       hasGps, hasCarplay, hasAndroidAuto, hasBackupCamera, hasLeatherSeats, hasSunroof, hasThirdRow,
       fleetInterest,
+      paymentMethod, bankName, accountHolderName, routingNumber, accountNumber, accountType,
     } = body;
 
     const required = [
@@ -83,6 +84,12 @@ export async function POST(request: NextRequest) {
       has_sunroof: !!hasSunroof,
       has_third_row: !!hasThirdRow,
       fleet_interest: Array.isArray(fleetInterest) ? fleetInterest.join(", ") : (fleetInterest || undefined),
+      payment_method: paymentMethod || "direct_deposit",
+      bank_name: bankName || undefined,
+      account_holder_name: accountHolderName || undefined,
+      routing_number: routingNumber || undefined,
+      account_number: accountNumber || undefined,
+      account_type: accountType || undefined,
       review_expires_at: reviewExpiresAt,
     });
 

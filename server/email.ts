@@ -43,8 +43,8 @@ export async function sendContactConfirmationEmail(
   const text = `Hi ${name},\n\nThanks for contacting ToyoCar. We received your message and will reply shortly.\n\nBest regards,\nToyoCar Support`;
   const html = `
     <p>Hi ${name},</p>
-    <p>Thanks for contacting <strong>ToyoCar</strong>. We received your message and will reply shortly.</p>
-    <p>Best regards,<br/>ToyoCar Support</p>
+    <p>Thanks for contacting <strong>ToYou Car Rentals</strong>. We received your message and will reply shortly.</p>
+    <p>Best regards,<br/>ToYou Car Rentals Support</p>
   `;
 
   return sendMail({ to: email, subject, text, html });

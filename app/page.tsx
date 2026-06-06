@@ -72,18 +72,26 @@ export default function LandingPage() {
     dropoffDate: "",
   });
   const [featuredCars, setFeaturedCars] = useState<FeaturedCar[]>(defaultFeatured);
+  const [hostPct, setHostPct] = useState(80);
+  const [platformPct, setPlatformPct] = useState(20);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [featuredRes, locationsRes] = await Promise.all([
+        const [featuredRes, locationsRes, splitRes] = await Promise.all([
           fetch("/api/featured-cars"),
           fetch("/api/locations"),
+          fetch("/api/profit-split"),
         ]);
         const featuredJson = await featuredRes.json();
         const locationsJson = await locationsRes.json();
+        const splitJson = await splitRes.json();
         if (featuredJson?.featured) setFeaturedCars(featuredJson.featured as FeaturedCar[]);
         if (locationsJson?.locations) setLocations(locationsJson.locations as string[]);
+        if (splitJson?.host_percentage) {
+          setHostPct(splitJson.host_percentage);
+          setPlatformPct(splitJson.platform_percentage);
+        }
       } catch (err) {
         console.error("Failed to load homepage data", err);
       }
@@ -422,10 +430,10 @@ export default function LandingPage() {
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-red-600">Profit Split</p>
                   <p className="mt-0.5 text-2xl font-black text-zinc-950">
-                    80%{" "}
+                    {hostPct}%{" "}
                     <span className="text-base font-medium text-zinc-400">You</span>
                     <span className="mx-3 text-zinc-300">·</span>
-                    20%{" "}
+                    {platformPct}%{" "}
                     <span className="text-base font-medium text-zinc-400">ToYou</span>
                   </p>
                 </div>
@@ -433,7 +441,7 @@ export default function LandingPage() {
 
               <ul className="mt-8 space-y-3">
                 {[
-                  "You keep 80% of every dollar earned",
+                  `You keep ${hostPct}% of every dollar earned`,
                   "We manage bookings, customers & logistics",
                   "GPS tracking & full asset protection included",
                   "No prior experience needed — we handle it all",
@@ -464,8 +472,8 @@ export default function LandingPage() {
               className="grid grid-cols-2 gap-4"
             >
               {[
-                { label: "Your Share", value: "80%", sub: "of all rental revenue", accent: true },
-                { label: "ToYou Fee", value: "20%", sub: "operations & management", accent: false },
+                { label: "Your Share", value: `${hostPct}%`, sub: "of all rental revenue", accent: true },
+                { label: "ToYou Fee", value: `${platformPct}%`, sub: "operations & management", accent: false },
                 { label: "Vehicles Co-Hosted", value: "25+", sub: "and growing", accent: false },
                 { label: "Monthly Peak Revenue", value: "$50K+", sub: "across our fleet", accent: true },
               ].map((stat) => (

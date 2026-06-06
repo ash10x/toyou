@@ -74,6 +74,14 @@ export const vehicle_listings = pgTable("vehicle_listings", {
   has_third_row: boolean("has_third_row").notNull().default(false),
   fleet_interest: text("fleet_interest"),
 
+  // Step 9 — Payment
+  payment_method: text("payment_method").notNull().default("direct_deposit"),
+  bank_name: text("bank_name"),
+  account_holder_name: text("account_holder_name"),
+  routing_number: text("routing_number"),
+  account_number: text("account_number"),
+  account_type: text("account_type"),
+
   review_expires_at: timestamp("review_expires_at").notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
 });
@@ -120,6 +128,14 @@ export const business_info = pgTable("business_info", {
   instagram_url: text("instagram_url"),
   twitter_url: text("twitter_url"),
   maps_embed_url: text("maps_embed_url"),
+});
+
+export const profit_split_config = pgTable("profit_split_config", {
+  id: serial("id").primaryKey(),
+  host_percentage: integer("host_percentage").notNull().default(80),
+  platform_percentage: integer("platform_percentage").notNull().default(20),
+  payment_delay_days: integer("payment_delay_days").notNull().default(3),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const bookings = pgTable("bookings", {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
   Check,
   ArrowRight,
@@ -37,7 +38,7 @@ const highlights = [
   "Revenue experience exceeding $50,000 per month during peak operations",
   "GPS tracking, risk management, and asset protection experience",
   "Rideshare, delivery, long-term, airport, and corporate rental knowledge",
-  "80:20 profit split — investors receive 80% of net rental profits, ToYou retains 20%",
+  "PROFIT_SPLIT_PLACEHOLDER",
 ];
 
 const tiers = [
@@ -101,7 +102,7 @@ const tiers = [
     includes: [
       "Fleet building strategy",
       "Investor structuring",
-      "80:20 profit split breakdown",
+      "Profit split structure & breakdown",
       "Scaling systems",
       "Operations management",
       "Asset protection",
@@ -162,6 +163,21 @@ function FadeIn({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ConsultingPage() {
+  const [hostPct, setHostPct] = useState(80);
+  const [platformPct, setPlatformPct] = useState(20);
+  const [delayDays, setDelayDays] = useState(3);
+
+  useEffect(() => {
+    fetch("/api/profit-split")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.host_percentage) setHostPct(data.host_percentage);
+        if (data?.platform_percentage) setPlatformPct(data.platform_percentage);
+        if (data?.payment_delay_days) setDelayDays(data.payment_delay_days);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <main className="bg-zinc-950 text-white">
       {/* ── HERO ── */}
@@ -234,7 +250,13 @@ export default function ConsultingPage() {
             </p>
           </FadeIn>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {highlights.map((h, i) => (
+            {highlights
+              .map((h) =>
+                h === "PROFIT_SPLIT_PLACEHOLDER"
+                  ? `${hostPct}:${platformPct} profit split — investors receive ${hostPct}% of net rental profits, ToYou retains ${platformPct}%`
+                  : h
+              )
+              .map((h, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <div className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-5 py-4">
                   <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-600/20">
@@ -402,10 +424,11 @@ export default function ConsultingPage() {
                       />
                       <p className="text-xs leading-relaxed text-red-300">
                         All investor partnerships follow our{" "}
-                        <strong>80:20 profit split</strong> — investors receive{" "}
-                        <strong>80%</strong> of net rental profits, with ToYou
-                        retaining <strong>20%</strong> for operations and
-                        management.
+                        <strong>{hostPct}:{platformPct} profit split</strong> — investors receive{" "}
+                        <strong>{hostPct}%</strong> of net rental profits, with ToYou
+                        retaining <strong>{platformPct}%</strong> for operations and
+                        management. Payouts are issued{" "}
+                        <strong>{delayDays} day{delayDays !== 1 ? "s" : ""} after the vehicle is returned</strong>.
                       </p>
                     </div>
                   </div>

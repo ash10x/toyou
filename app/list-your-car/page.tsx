@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, ChangeEvent } from "react";
+import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
   User, Car, ClipboardList, Camera, FileText, Target,
   MapPin, Star, ChevronRight, ChevronLeft, Check, Upload,
-  AlertCircle, CheckCircle2, Loader2, X,
+  AlertCircle, CheckCircle2, Loader2, X, CreditCard, Building2,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -41,6 +41,13 @@ type FormData = {
   hasGps: boolean; hasCarplay: boolean; hasAndroidAuto: boolean;
   hasBackupCamera: boolean; hasLeatherSeats: boolean; hasSunroof: boolean;
   hasThirdRow: boolean; fleetInterest: string[];
+  // Step 9
+  paymentMethod: string;
+  bankName: string;
+  accountHolderName: string;
+  routingNumber: string;
+  accountNumber: string;
+  accountType: string;
 };
 
 const initialForm: FormData = {
@@ -56,6 +63,9 @@ const initialForm: FormData = {
   hasGps: false, hasCarplay: false, hasAndroidAuto: false,
   hasBackupCamera: false, hasLeatherSeats: false, hasSunroof: false,
   hasThirdRow: false, fleetInterest: [],
+  paymentMethod: "direct_deposit",
+  bankName: "", accountHolderName: "", routingNumber: "",
+  accountNumber: "", accountType: "",
 };
 
 // ─── Step config ──────────────────────────────────────────────────────────────
@@ -69,6 +79,7 @@ const STEPS = [
   { label: "Goals", icon: Target },
   { label: "Location", icon: MapPin },
   { label: "Features", icon: Star },
+  { label: "Payment", icon: CreditCard },
 ];
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
@@ -569,6 +580,112 @@ function Step8({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
   );
 }
 
+function Step9({
+  form,
+  set,
+  hostPct,
+  delayDays,
+}: {
+  form: FormData;
+  set: (k: keyof FormData, v: unknown) => void;
+  hostPct: number;
+  delayDays: number;
+}) {
+  return (
+    <div className="space-y-6">
+      {/* Payout info banner */}
+      <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-4">
+        <div className="flex items-start gap-3">
+          <Building2 size={16} className="mt-0.5 shrink-0 text-red-400" />
+          <div className="text-xs leading-relaxed text-red-300">
+            <strong className="block mb-1 text-red-200">Payment Information</strong>
+            You keep <strong>{hostPct}%</strong> of all rental revenue. Payments are issued via
+            direct deposit <strong>{delayDays} day{delayDays !== 1 ? "s" : ""} after the rental vehicle is returned</strong> to the host.
+          </div>
+        </div>
+      </div>
+
+      {/* Payment method — currently only direct deposit */}
+      <div>
+        <SectionTitle>Payment Method</SectionTitle>
+        <div className="flex gap-3">
+          <RadioCard
+            label="Direct Deposit (ACH)"
+            selected={form.paymentMethod === "direct_deposit"}
+            onClick={() => set("paymentMethod", "direct_deposit")}
+          />
+        </div>
+        <p className="mt-2 text-xs text-zinc-600">Additional payment methods coming soon.</p>
+      </div>
+
+      {/* Direct deposit fields */}
+      {form.paymentMethod === "direct_deposit" && (
+        <div className="space-y-4">
+          <SectionTitle>Bank Account Details (US Only)</SectionTitle>
+
+          <TextInput
+            label="Account Holder Name"
+            placeholder="Full legal name on the account"
+            value={form.accountHolderName}
+            onChange={(v) => set("accountHolderName", v)}
+          />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TextInput
+              label="Bank Name"
+              placeholder="e.g. Chase, Bank of America"
+              value={form.bankName}
+              onChange={(v) => set("bankName", v)}
+            />
+            <div>
+              <FieldLabel>
+                Account Type<span className="ml-1 text-red-500">*</span>
+              </FieldLabel>
+              <div className="flex gap-3">
+                <RadioCard
+                  label="Checking"
+                  selected={form.accountType === "checking"}
+                  onClick={() => set("accountType", "checking")}
+                />
+                <RadioCard
+                  label="Savings"
+                  selected={form.accountType === "savings"}
+                  onClick={() => set("accountType", "savings")}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TextInput
+              label="Routing Number"
+              placeholder="9-digit ABA routing number"
+              value={form.routingNumber}
+              onChange={(v) => set("routingNumber", v)}
+            />
+            <TextInput
+              label="Account Number"
+              placeholder="Your bank account number"
+              value={form.accountNumber}
+              onChange={(v) => set("accountNumber", v)}
+            />
+          </div>
+
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle size={13} className="mt-0.5 shrink-0 text-amber-400" />
+              <p className="text-xs leading-relaxed text-amber-300">
+                Your banking details are encrypted and stored securely. They are only used to
+                process your rental earnings via ACH direct deposit.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Step validation ──────────────────────────────────────────────────────────
 
 function isStepValid(step: number, form: FormData): boolean {
@@ -581,6 +698,14 @@ function isStepValid(step: number, form: FormData): boolean {
     case 5: return !!(form.listingReason.length > 0 && form.usageFrequency && form.availableDaysPerMonth);
     case 6: return !!(form.pickupLocationType && form.streetAddress && form.locationZip);
     case 7: return true;
+    case 8: return !!(
+      form.paymentMethod &&
+      form.accountHolderName &&
+      form.bankName &&
+      form.accountType &&
+      form.routingNumber.length === 9 &&
+      form.accountNumber
+    );
     default: return true;
   }
 }
@@ -601,6 +726,18 @@ export default function ListYourCarPage() {
   const [referenceNumber, setReferenceNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hostPct, setHostPct] = useState(80);
+  const [delayDays, setDelayDays] = useState(3);
+
+  useEffect(() => {
+    fetch("/api/profit-split")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.host_percentage) setHostPct(data.host_percentage);
+        if (data?.payment_delay_days) setDelayDays(data.payment_delay_days);
+      })
+      .catch(() => {});
+  }, []);
 
   const setField = (key: keyof FormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -647,6 +784,12 @@ export default function ListYourCarPage() {
           hasAndroidAuto: form.hasAndroidAuto, hasBackupCamera: form.hasBackupCamera,
           hasLeatherSeats: form.hasLeatherSeats, hasSunroof: form.hasSunroof,
           hasThirdRow: form.hasThirdRow, fleetInterest: form.fleetInterest,
+          paymentMethod: form.paymentMethod,
+          bankName: form.bankName,
+          accountHolderName: form.accountHolderName,
+          routingNumber: form.routingNumber,
+          accountNumber: form.accountNumber,
+          accountType: form.accountType,
         }),
       });
       if (!res.ok) {
@@ -668,6 +811,7 @@ export default function ListYourCarPage() {
     <Step1 {...stepProps} />, <Step2 {...stepProps} />, <Step3 {...stepProps} />,
     <Step4 {...stepProps} />, <Step5 {...stepProps} />, <Step6 {...stepProps} />,
     <Step7 {...stepProps} />, <Step8 {...stepProps} />,
+    <Step9 {...stepProps} hostPct={hostPct} delayDays={delayDays} />,
   ];
 
   if (submitted) {
@@ -722,10 +866,10 @@ export default function ListYourCarPage() {
             Earn passive income from your vehicle. Complete all steps and our team will review your application within 72 hours.
           </p>
           <div className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 backdrop-blur-sm">
-            <span className="text-sm font-black text-red-400">80:20 Profit Split</span>
+            <span className="text-sm font-black text-red-400">{hostPct}:{100 - hostPct} Profit Split</span>
             <span className="text-zinc-600">—</span>
             <span className="text-sm text-zinc-400">
-              You keep <strong className="text-white">80%</strong> of all rental revenue
+              You keep <strong className="text-white">{hostPct}%</strong> of all rental revenue
             </span>
           </div>
         </motion.div>
@@ -765,7 +909,7 @@ export default function ListYourCarPage() {
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Step {step + 1} of {STEPS.length}</p>
               <h2 className="text-lg font-bold text-white">
-                {["Owner Information","Vehicle Information","Vehicle Condition","Photo Uploads","Document Uploads","Owner Goals","Vehicle Location","Final Questions"][step]}
+                {["Owner Information","Vehicle Information","Vehicle Condition","Photo Uploads","Document Uploads","Owner Goals","Vehicle Location","Final Questions","Payment Details"][step]}
               </h2>
             </div>
           </div>
