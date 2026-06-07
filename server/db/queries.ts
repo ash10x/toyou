@@ -14,7 +14,12 @@ import {
 } from "./schema";
 
 export async function getCars() {
-  return await db.select().from(cars).orderBy(cars.id);
+  return await db.select().from(cars).orderBy(desc(cars.id));
+}
+
+export async function getCarById(id: number) {
+  const [car] = await db.select().from(cars).where(eq(cars.id, id));
+  return car ?? null;
 }
 
 export async function getLocations() {
@@ -39,7 +44,7 @@ export async function getFeaturedCars() {
     })
     .from(cars)
     .where(eq(cars.featured, true))
-    .orderBy(cars.id);
+    .orderBy(desc(cars.id));
 }
 
 export async function getStats() {
@@ -217,18 +222,36 @@ export async function createCarFromListing(data: {
   fuel?: string | null;
   body?: string | null;
   transmission?: string | null;
+  listing_id: number;
 }) {
+  // Sync the sequence in case rows were inserted with explicit IDs (e.g. seed data)
+  await db.execute(sql`SELECT setval('cars_id_seq', (SELECT COALESCE(MAX(id), 0) FROM cars))`);
+
+  const values = {
+    name: data.name,
+    image: data.image,
+    price: data.price,
+    seats: data.seats ?? undefined,
+    fuel: data.fuel ?? undefined,
+    body: data.body ?? undefined,
+    transmission: data.transmission ?? undefined,
+    featured: false,
+    listing_id: data.listing_id,
+  };
   const [created] = await db
     .insert(cars)
-    .values({
-      name: data.name,
-      image: data.image,
-      price: data.price,
-      seats: data.seats ?? undefined,
-      fuel: data.fuel ?? undefined,
-      body: data.body ?? undefined,
-      transmission: data.transmission ?? undefined,
-      featured: false,
+    .values(values)
+    .onConflictDoUpdate({
+      target: cars.listing_id,
+      set: {
+        name: values.name,
+        image: values.image,
+        price: values.price,
+        seats: values.seats,
+        fuel: values.fuel,
+        body: values.body,
+        transmission: values.transmission,
+      },
     })
     .returning();
   return created;

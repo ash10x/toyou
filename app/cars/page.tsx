@@ -163,70 +163,56 @@ export default function InventoryPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {filteredCars.map((car, index) => (
-                <motion.div
-                  key={car.id}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                  viewport={{ once: true }}
-                  className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-[0_2px_16px_rgba(0,0,0,0.05)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_16px_48px_rgba(0,0,0,0.1)]"
-                >
-                  {/* IMAGE */}
-                  <div className="relative h-64 overflow-hidden">
-                    <Image
-                      src={car.image || "https://via.placeholder.com/600x350"}
-                      alt={car.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-4 left-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
-                      ${car.price}/day
-                    </div>
-                    {car.transmission && (
-                      <div className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-                        {car.transmission}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* CONTENT */}
-                  <div className="p-6">
-                    <h2 className="text-xl font-black tracking-tight text-zinc-950">{car.name}</h2>
-                    <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-                      Premium {car.body ?? "Vehicle"} Rental
-                    </p>
-
-                    <div className="mt-6 grid grid-cols-3 gap-2">
-                      <SpecCard icon={<Users size={15} />} label="Seats" value={car.seats != null ? String(car.seats) : "—"} />
-                      <SpecCard icon={<Fuel size={15} />} label="Fuel" value={car.fuel ?? "—"} />
-                      <SpecCard icon={<CarFront size={15} />} label="Body" value={car.body ?? "—"} />
-                    </div>
-
-                    <Link
-                      href={{
-                        pathname: "/booking",
-                        query: {
-                          carId: car.id,
-                          carName: car.name,
-                          carImage: car.image,
-                          carPrice: car.price,
-                          transmission: car.transmission,
-                          body: car.body,
-                          fuel: car.fuel,
-                          seats: car.seats,
-                        },
-                      }}
-                      className="group mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-700 hover:shadow-[0_0_24px_rgba(220,38,38,0.35)]"
-                    >
-                      Reserve Vehicle
-                      <ArrowRight
-                        size={15}
-                        className="transition-transform duration-300 group-hover:translate-x-0.5"
+                <Link key={car.id} href={`/cars/${car.id}`} className="block">
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                    viewport={{ once: true }}
+                    className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-[0_2px_16px_rgba(0,0,0,0.05)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_16px_48px_rgba(0,0,0,0.1)]"
+                  >
+                    {/* IMAGE */}
+                    <div className="relative h-64 overflow-hidden">
+                      <Image
+                        src={car.image || "https://via.placeholder.com/600x350"}
+                        alt={car.name}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
-                    </Link>
-                  </div>
-                </motion.div>
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute bottom-4 left-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
+                        ${car.price}/day
+                      </div>
+                      {car.transmission && (
+                        <div className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                          {car.transmission}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* CONTENT */}
+                    <div className="p-6">
+                      <h2 className="text-xl font-black tracking-tight text-zinc-950">{car.name}</h2>
+                      <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+                        Premium {car.body ?? "Vehicle"} Rental
+                      </p>
+
+                      <div className="mt-6 grid grid-cols-3 gap-2">
+                        <SpecCard icon={<Users size={15} />} label="Seats" value={car.seats != null ? String(car.seats) : "—"} />
+                        <SpecCard icon={<Fuel size={15} />} label="Fuel" value={car.fuel ?? "—"} />
+                        <SpecCard icon={<CarFront size={15} />} label="Body" value={car.body ?? "—"} />
+                      </div>
+
+                      <div className="group/btn mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 py-3.5 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-red-600 group-hover:shadow-[0_0_24px_rgba(220,38,38,0.35)]">
+                        View Details
+                        <ArrowRight
+                          size={15}
+                          className="transition-transform duration-300 group-hover:translate-x-0.5"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
               ))}
             </div>
           )}

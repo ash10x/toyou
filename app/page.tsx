@@ -99,6 +99,20 @@ export default function LandingPage() {
     loadData();
   }, []);
 
+  // Earliest pickup: 48 hours from now
+  const minPickupDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split("T")[0];
+  }, []);
+
+  // Earliest dropoff: pickup date + 3 days (or minPickup + 3 if no pickup chosen)
+  const minDropoffDate = useMemo(() => {
+    const base = form.pickupDate ? new Date(form.pickupDate + "T00:00:00") : (() => { const d = new Date(); d.setDate(d.getDate() + 2); return d; })();
+    base.setDate(base.getDate() + 3);
+    return base.toISOString().split("T")[0];
+  }, [form.pickupDate]);
+
   const isValid = useMemo(
     () =>
       form.fullName &&
@@ -274,12 +288,24 @@ export default function LandingPage() {
                   <GlassInput
                     icon={CalendarDays}
                     type="date"
+                    min={minPickupDate}
                     value={form.pickupDate}
-                    onChange={(e) => setForm({ ...form, pickupDate: e.target.value })}
+                    onChange={(e) => {
+                      const newPickup = e.target.value;
+                      const base = new Date(newPickup + "T00:00:00");
+                      base.setDate(base.getDate() + 3);
+                      const newMinDropoff = base.toISOString().split("T")[0];
+                      setForm({
+                        ...form,
+                        pickupDate: newPickup,
+                        dropoffDate: form.dropoffDate < newMinDropoff ? "" : form.dropoffDate,
+                      });
+                    }}
                   />
                   <GlassInput
                     icon={CalendarDays}
                     type="date"
+                    min={minDropoffDate}
                     value={form.dropoffDate}
                     onChange={(e) => setForm({ ...form, dropoffDate: e.target.value })}
                   />
@@ -328,60 +354,48 @@ export default function LandingPage() {
 
           <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
             {featuredCars.map((car, index) => (
-              <motion.div
-                key={car.name}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                viewport={{ once: true }}
-                className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.1)]"
-              >
-                <div className="relative h-64 overflow-hidden">
-                  <Image
-                    src={car.image || "https://via.placeholder.com/600x350"}
-                    alt={car.name}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/65 to-transparent" />
-                  <div className="absolute bottom-4 left-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-red-900/20">
-                    ${car.price}/day
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-xl font-black tracking-tight text-zinc-950">{car.name}</h3>
-                  <p className="mt-1 text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                    Premium Rental
-                  </p>
-
-                  <div className="mt-5 grid grid-cols-2 gap-2.5">
-                    <FeatureSpec icon={<Users size={14} />} label="Seats" value={`${car.seats || 5}`} />
-                    <FeatureSpec icon={<Fuel size={14} />} label="Fuel" value={car.fuel || "Gasoline"} />
-                  </div>
-
-                  <Link
-                    href={{
-                      pathname: "/booking",
-                      query: {
-                        carId: car.id ?? index,
-                        carName: car.name,
-                        carImage: car.image,
-                        carPrice: car.price,
-                        fuel: car.fuel || "",
-                        seats: car.seats?.toString() || "",
-                      },
-                    }}
-                    className="group mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_0_24px_rgba(220,38,38,0.3)]"
-                  >
-                    Book Now
-                    <ArrowRight
-                      size={15}
-                      className="transition-transform duration-300 group-hover:translate-x-0.5"
+              <Link key={car.name} href={`/cars/${car.id ?? index}`} className="block">
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  viewport={{ once: true }}
+                  className="group overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.1)]"
+                >
+                  <div className="relative h-64 overflow-hidden">
+                    <Image
+                      src={car.image || "https://via.placeholder.com/600x350"}
+                      alt={car.name}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                  </Link>
-                </div>
-              </motion.div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/65 to-transparent" />
+                    <div className="absolute bottom-4 left-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg shadow-red-900/20">
+                      ${car.price}/day
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <h3 className="text-xl font-black tracking-tight text-zinc-950">{car.name}</h3>
+                    <p className="mt-1 text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                      Premium Rental
+                    </p>
+
+                    <div className="mt-5 grid grid-cols-2 gap-2.5">
+                      <FeatureSpec icon={<Users size={14} />} label="Seats" value={`${car.seats || 5}`} />
+                      <FeatureSpec icon={<Fuel size={14} />} label="Fuel" value={car.fuel || "Gasoline"} />
+                    </div>
+
+                    <div className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 py-3.5 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-red-600 group-hover:shadow-[0_0_24px_rgba(220,38,38,0.3)]">
+                      View Details
+                      <ArrowRight
+                        size={15}
+                        className="transition-transform duration-300 group-hover:translate-x-0.5"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
 
@@ -669,12 +683,14 @@ function GlassInput({
   type = "text",
   placeholder,
   value,
+  min,
   onChange,
 }: {
   icon?: React.ComponentType<{ className?: string; size?: number }>;
   type?: string;
   placeholder?: string;
   value?: string;
+  min?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -686,6 +702,7 @@ function GlassInput({
         type={type}
         placeholder={placeholder}
         value={value}
+        min={min}
         onChange={onChange}
         className={`h-12 w-full rounded-xl border border-white/10 bg-white/[0.08] text-sm text-white outline-none placeholder:text-zinc-500 transition-all duration-200 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 ${
           Icon ? "pl-11 pr-4" : "px-4"

@@ -50,9 +50,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   intent: Intent;
+  returnUrl?: string;
 }
 
-export default function AuthModal({ isOpen, onClose, intent }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, intent, returnUrl }: AuthModalProps) {
   const c = CONTENT[intent];
   const Icon = c.icon;
 
@@ -73,8 +74,10 @@ export default function AuthModal({ isOpen, onClose, intent }: AuthModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const signInHref = `/login?tab=signin&next=${intent === "rent" ? "/booking" : "/list-your-car"}`;
-  const signUpHref = `/login?tab=signup&role=${intent === "rent" ? "renter" : "hoster"}&next=${intent === "rent" ? "/booking" : "/list-your-car"}`;
+  const defaultNext = intent === "rent" ? "/booking" : "/list-your-car";
+  const next = encodeURIComponent(returnUrl || defaultNext);
+  const signInHref = `/login?tab=signin&next=${next}`;
+  const signUpHref = `/login?tab=signup&role=${intent === "rent" ? "renter" : "hoster"}&next=${next}`;
 
   return (
     <AnimatePresence>

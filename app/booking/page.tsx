@@ -83,6 +83,7 @@ function BookingPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authReturnUrl, setAuthReturnUrl] = useState<string | undefined>(undefined);
 
   const [cars, setCars] = useState<Car[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
@@ -165,6 +166,23 @@ function BookingPageContent() {
   const handleBooking = async () => {
     if (!isValid || !car) return;
     if (!isAuthenticated) {
+      const p = new URLSearchParams({ from: "form" });
+      p.set("fullName", form.fullName);
+      p.set("email", form.email);
+      p.set("phone", form.phone);
+      p.set("pickup", form.pickup);
+      p.set("dropoff", form.dropoff);
+      p.set("pickupDate", form.pickupDate);
+      p.set("dropoffDate", form.dropoffDate);
+      if (car.id) p.set("carId", String(car.id));
+      if (car.name) p.set("carName", car.name);
+      if (car.image) p.set("carImage", car.image);
+      if (car.price) p.set("carPrice", String(car.price));
+      if (car.transmission) p.set("transmission", car.transmission);
+      if (car.body) p.set("body", car.body);
+      if (car.fuel) p.set("fuel", car.fuel);
+      if (car.seats) p.set("seats", String(car.seats));
+      setAuthReturnUrl(`/booking?${p.toString()}`);
       setShowAuthModal(true);
       return;
     }
@@ -445,6 +463,7 @@ function BookingPageContent() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         intent="rent"
+        returnUrl={authReturnUrl}
       />
     </main>
   );
@@ -547,7 +566,6 @@ function MiniSlider({
   const paused = useRef(false);
   const userSelected = useRef(false);
   const autoRef = useRef<number | null>(null);
-  // Track current index in a ref so interval can read it without stale closure
   const indexRef = useRef(0);
   indexRef.current = index;
 

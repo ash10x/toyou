@@ -54,6 +54,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       fuel: listing.fuel,
       body: listing.body,
       transmission: listing.transmission,
+      listing_id: Number(id),
     });
 
     // Email is non-critical — fire-and-forget is fine

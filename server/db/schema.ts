@@ -103,6 +103,7 @@ export const cars = pgTable("cars", {
   body: text("body"),
   transmission: text("transmission"),
   featured: boolean("featured").notNull().default(false),
+  listing_id: integer("listing_id").unique(),
 });
 
 export const locations = pgTable("locations", {
