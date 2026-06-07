@@ -17,11 +17,12 @@ function generateReferenceNumber(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const payload = await request.json();
 
     const {
       firstName, lastName, phone, email, city, state, zipCode, isRegisteredOwner,
       year, make, model, trim, color, vin, licensePlate, mileage,
+      seats, fuel, body, transmission,
       titleStatus, accidentHistory, vehicleCondition, hasMechanicalIssues, mechanicalIssuesDescription,
       photoFiles, documentFiles,
       listingReason, usageFrequency, availableDaysPerMonth,
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
       hasGps, hasCarplay, hasAndroidAuto, hasBackupCamera, hasLeatherSeats, hasSunroof, hasThirdRow,
       fleetInterest,
       paymentMethod, bankName, accountHolderName, routingNumber, accountNumber, accountType,
-    } = body;
+    } = payload;
 
     const required = [
       firstName, lastName, phone, email, city, state, zipCode,
@@ -69,6 +70,10 @@ export async function POST(request: NextRequest) {
       vin,
       license_plate: licensePlate,
       mileage: Number(mileage),
+      seats: seats != null ? Number(seats) : undefined,
+      fuel: fuel || undefined,
+      body: body || undefined,
+      transmission: transmission || undefined,
       title_status: titleStatus,
       accident_history: accidentHistory,
       vehicle_condition: vehicleCondition,

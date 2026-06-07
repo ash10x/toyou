@@ -40,24 +40,32 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const updated = await updateListingStatus(Number(id), status);
 
-  // Side effects fire-and-forget so the response stays fast
   if (status === "approved") {
     const rate = Number(dailyRate) || 0;
     const vehicleName = `${listing.year} ${listing.make} ${listing.model}${listing.trim ? ` ${listing.trim}` : ""}`;
     const imageUrl = extractFirstPhotoUrl(listing.photo_files);
 
-    Promise.all([
-      createCarFromListing({ name: vehicleName, image: imageUrl, price: rate }),
-      sendListingApprovedEmail(
-        listing.first_name,
-        listing.email,
-        listing.year,
-        listing.make,
-        listing.model,
-        listing.reference_number,
-        rate,
-      ),
-    ]).catch(console.error);
+    // Await car creation so it completes before the response is sent
+    await createCarFromListing({
+      name: vehicleName,
+      image: imageUrl,
+      price: rate,
+      seats: listing.seats,
+      fuel: listing.fuel,
+      body: listing.body,
+      transmission: listing.transmission,
+    });
+
+    // Email is non-critical — fire-and-forget is fine
+    sendListingApprovedEmail(
+      listing.first_name,
+      listing.email,
+      listing.year,
+      listing.make,
+      listing.model,
+      listing.reference_number,
+      rate,
+    ).catch(console.error);
   }
 
   if (status === "rejected") {

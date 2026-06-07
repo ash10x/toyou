@@ -156,6 +156,10 @@ export async function createVehicleListing(data: {
   vin: string;
   license_plate: string;
   mileage: number;
+  seats?: number;
+  fuel?: string;
+  body?: string;
+  transmission?: string;
   title_status: string;
   accident_history: string;
   vehicle_condition: string;
@@ -209,10 +213,23 @@ export async function createCarFromListing(data: {
   name: string;
   image: string;
   price: number;
+  seats?: number | null;
+  fuel?: string | null;
+  body?: string | null;
+  transmission?: string | null;
 }) {
   const [created] = await db
     .insert(cars)
-    .values({ name: data.name, image: data.image, price: data.price, featured: false })
+    .values({
+      name: data.name,
+      image: data.image,
+      price: data.price,
+      seats: data.seats ?? undefined,
+      fuel: data.fuel ?? undefined,
+      body: data.body ?? undefined,
+      transmission: data.transmission ?? undefined,
+      featured: false,
+    })
     .returning();
   return created;
 }
@@ -355,7 +372,34 @@ export async function deleteAdminUserById(id: number) {
 
 // Bookings
 export async function getAllBookings() {
-  return await db.select().from(bookings).orderBy(desc(bookings.created_at));
+  const rows = await db
+    .select({
+      id: bookings.id,
+      car_id: bookings.car_id,
+      full_name: bookings.full_name,
+      email: bookings.email,
+      phone: bookings.phone,
+      pickup_location: bookings.pickup_location,
+      dropoff_location: bookings.dropoff_location,
+      pickup_date: bookings.pickup_date,
+      dropoff_date: bookings.dropoff_date,
+      total_price: bookings.total_price,
+      status: bookings.status,
+      created_at: bookings.created_at,
+      car_name: cars.name,
+      car_image: cars.image,
+      car_price: cars.price,
+      car_seats: cars.seats,
+      car_fuel: cars.fuel,
+      car_body: cars.body,
+      car_transmission: cars.transmission,
+      portal_user_id: portal_users.id,
+    })
+    .from(bookings)
+    .leftJoin(cars, eq(bookings.car_id, cars.id))
+    .leftJoin(portal_users, eq(bookings.email, portal_users.email))
+    .orderBy(desc(bookings.created_at));
+  return rows;
 }
 
 export async function getBookingById(id: number) {
@@ -365,6 +409,11 @@ export async function getBookingById(id: number) {
 
 export async function deleteBookingById(id: number) {
   await db.delete(bookings).where(eq(bookings.id, id));
+}
+
+export async function updateBookingById(id: number, data: { status: string }) {
+  const rows = await db.update(bookings).set(data).where(eq(bookings.id, id)).returning();
+  return rows[0] ?? null;
 }
 
 // Vehicle listings

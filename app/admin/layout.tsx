@@ -61,7 +61,7 @@ function Sidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-3 overflow-y-auto">
+      <nav className="flex-1 py-3 overflow-y-auto no-scrollbar">
         {nav.map(({ href, label, icon }) => {
           const active = pathname === href || (href !== "/admin" && pathname.startsWith(href));
           return (
@@ -184,7 +184,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto no-scrollbar">
           {children}
         </main>
       </div>

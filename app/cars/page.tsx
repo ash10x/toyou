@@ -183,22 +183,24 @@ export default function InventoryPage() {
                     <div className="absolute bottom-4 left-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-lg">
                       ${car.price}/day
                     </div>
-                    <div className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-                      {car.transmission}
-                    </div>
+                    {car.transmission && (
+                      <div className="absolute right-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                        {car.transmission}
+                      </div>
+                    )}
                   </div>
 
                   {/* CONTENT */}
                   <div className="p-6">
                     <h2 className="text-xl font-black tracking-tight text-zinc-950">{car.name}</h2>
                     <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400">
-                      Premium {car.body} Rental
+                      Premium {car.body ?? "Vehicle"} Rental
                     </p>
 
                     <div className="mt-6 grid grid-cols-3 gap-2">
-                      <SpecCard icon={<Users size={15} />} label="Seats" value={String(car.seats)} />
-                      <SpecCard icon={<Fuel size={15} />} label="Fuel" value={String(car.fuel)} />
-                      <SpecCard icon={<CarFront size={15} />} label="Body" value={String(car.body)} />
+                      <SpecCard icon={<Users size={15} />} label="Seats" value={car.seats != null ? String(car.seats) : "—"} />
+                      <SpecCard icon={<Fuel size={15} />} label="Fuel" value={car.fuel ?? "—"} />
+                      <SpecCard icon={<CarFront size={15} />} label="Body" value={car.body ?? "—"} />
                     </div>
 
                     <Link

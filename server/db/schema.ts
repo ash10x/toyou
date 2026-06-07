@@ -40,6 +40,10 @@ export const vehicle_listings = pgTable("vehicle_listings", {
   vin: text("vin").notNull(),
   license_plate: text("license_plate").notNull(),
   mileage: integer("mileage").notNull(),
+  seats: integer("seats"),
+  fuel: text("fuel"),
+  body: text("body"),
+  transmission: text("transmission"),
 
   // Step 3 — Condition
   title_status: text("title_status").notNull(),
@@ -165,5 +169,6 @@ export const bookings = pgTable("bookings", {
   pickup_date: text("pickup_date").notNull(),
   dropoff_date: text("dropoff_date").notNull(),
   total_price: integer("total_price").notNull(),
+  status: text("status").notNull().default("confirmed"),
   created_at: timestamp("created_at").notNull().defaultNow(),
 });

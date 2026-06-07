@@ -27,3 +27,12 @@ body {
 .mini-slider-scroll::-webkit-scrollbar {
   display: none;
 }
+
+/* Hide scrollbars while keeping scroll behaviour */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

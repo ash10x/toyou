@@ -26,6 +26,10 @@ type Listing = {
   trim?: string;
   color: string;
   mileage: number;
+  seats?: number | null;
+  fuel?: string | null;
+  body?: string | null;
+  transmission?: string | null;
   vin: string;
   license_plate: string;
   title_status: string;
@@ -332,6 +336,10 @@ export default function AdminListingsPage() {
                           </p>
                           <p className="text-xs text-zinc-500 mt-0.5">
                             {l.city}, {l.state} · {l.color} · {l.mileage.toLocaleString()} mi · {l.vehicle_condition}
+                            {l.body && <> · {l.body}</>}
+                            {l.transmission && <> · {l.transmission}</>}
+                            {l.seats && <> · {l.seats} seats</>}
+                            {l.fuel && <> · {l.fuel}</>}
                           </p>
                         </div>
 
@@ -386,7 +394,7 @@ export default function AdminListingsPage() {
                             Set Daily Rate to Approve
                           </p>
                           <p className="text-xs text-zinc-500 mb-3">
-                            This vehicle will be added to the car fleet at this daily rate. You can edit it later in the Cars section.
+                            This vehicle will be added to the car fleet at this daily rate, including its body type, transmission, seats, and fuel type. You can edit it later in the Cars section.
                           </p>
                           <div className="flex items-center gap-3">
                             <div className="relative">
@@ -478,6 +486,10 @@ export default function AdminListingsPage() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <DetailRow label="Year / Make / Model" value={vehicleName} />
                         <DetailRow label="Color" value={l.color} />
+                        <DetailRow label="Body Type" value={l.body} />
+                        <DetailRow label="Transmission" value={l.transmission} />
+                        <DetailRow label="Seats" value={l.seats != null ? String(l.seats) : null} />
+                        <DetailRow label="Fuel Type" value={l.fuel} />
                         <DetailRow label="VIN" value={l.vin} />
                         <DetailRow label="Plate" value={l.license_plate} />
                         <DetailRow label="Mileage" value={`${l.mileage.toLocaleString()} mi`} />

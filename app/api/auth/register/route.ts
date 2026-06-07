@@ -7,6 +7,7 @@ import {
   PortalRole,
 } from "@/server/portal-auth";
 import { getPortalUserByEmail, createPortalUser } from "@/server/db/queries";
+import { sendWelcomeEmail } from "@/server/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest) {
       phone: phone || undefined,
       role,
     });
+
+    sendWelcomeEmail(user.first_name, user.email, user.role as PortalRole).catch(console.error);
 
     const token = await createSessionToken({
       userId: user.id,

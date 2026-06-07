@@ -740,3 +740,137 @@ export async function sendAdminBookingNotificationEmail(
 
   return sendMail({ to: ADMIN_EMAIL, subject, text, html });
 }
+
+export async function sendWelcomeEmail(
+  firstName: string,
+  email: string,
+  role: "renter" | "hoster",
+) {
+  const isHoster = role === "hoster";
+  const subject = `Welcome to ToYou Car Rentals, ${firstName}!`;
+  const roleTag = isHoster ? "Hoster Account" : "Renter Account";
+  const tagColor = isHoster ? "#dc2626" : "#2563eb";
+
+  const nextSteps = isHoster
+    ? [
+        { icon: "🚗", text: "Submit your vehicle listing for review" },
+        { icon: "✅", text: "Get approved and join the ToYou fleet" },
+        { icon: "💰", text: "Start earning — you keep 80% of every rental" },
+        { icon: "📬", text: "Receive booking notifications by email" },
+      ]
+    : [
+        { icon: "🔍", text: "Browse our full fleet of available vehicles" },
+        { icon: "📅", text: "Book a car in minutes — no hassle" },
+        { icon: "📧", text: "Get instant booking confirmations by email" },
+        { icon: "📂", text: "Track all your rentals in your dashboard" },
+      ];
+
+  const ctaHref = isHoster
+    ? "https://www.toyoucarrentals.com/hoster"
+    : "https://www.toyoucarrentals.com/cars";
+  const ctaLabel = isHoster ? "Go to Hoster Dashboard" : "Browse Available Cars";
+
+  const text = `Hi ${firstName},\n\nWelcome to ToYou Car Rentals! Your ${roleTag} has been created successfully.\n\n${
+    isHoster
+      ? "You can now list your vehicle and start earning passive income. Head to your hoster dashboard to get started."
+      : "You can now browse our fleet and book your first car. Head to the cars page to get started."
+  }\n\nBest regards,\nThe ToYou Car Rentals Team`;
+
+  const html = `
+  <!DOCTYPE html>
+  <html lang="en">
+    <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+        style="background:#f3f4f6;padding:40px 16px;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+              style="max-width:620px;background:#ffffff;border-radius:20px;overflow:hidden;
+                     box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+              <tr>
+                <td align="center" style="background:#ffffff;padding:36px 24px 0;">
+                  <img
+                    src="https://www.toyoucarrentals.com/_next/image?url=%2Flogo%2Flogo.png&w=256&q=75"
+                    alt="ToYou Car Rentals" width="130"
+                    style="display:block;margin:0 auto 20px;" />
+                  <span style="display:inline-block;background:${tagColor}1a;color:${tagColor};
+                    border:1px solid ${tagColor}40;border-radius:100px;
+                    font-size:11px;font-weight:700;letter-spacing:.08em;
+                    text-transform:uppercase;padding:4px 14px;margin-bottom:18px;">
+                    ${roleTag}
+                  </span>
+                  <h1 style="margin:0 0 10px;font-size:26px;font-weight:800;
+                    color:#09090b;letter-spacing:-.5px;">
+                    Welcome, ${firstName}!
+                  </h1>
+                  <p style="margin:0;font-size:15px;color:#52525b;line-height:1.6;">
+                    Your ToYou account is ready.${isHoster
+                      ? " Start listing your vehicle and earning passive income today."
+                      : " Browse our fleet and book your first car today."}
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:28px 32px 0;">
+                  <div style="height:1px;background:#f4f4f5;"></div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:24px 32px;">
+                  <p style="margin:0 0 16px;font-size:12px;font-weight:700;
+                    text-transform:uppercase;letter-spacing:.12em;color:#a1a1aa;">
+                    What&apos;s next
+                  </p>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                    ${nextSteps.map(({ icon, text: stepText }) => `
+                    <tr>
+                      <td style="padding:0 0 12px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td style="width:36px;height:36px;text-align:center;vertical-align:middle;
+                              background:#f4f4f5;border-radius:10px;font-size:16px;">
+                              ${icon}
+                            </td>
+                            <td style="padding-left:12px;font-size:14px;color:#3f3f46;
+                              vertical-align:middle;line-height:1.5;">
+                              ${stepText}
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>`).join("")}
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding:4px 32px 36px;">
+                  <a href="${ctaHref}"
+                    style="display:inline-block;background:#dc2626;color:#ffffff;
+                      text-decoration:none;font-size:14px;font-weight:700;
+                      padding:14px 32px;border-radius:100px;letter-spacing:.02em;">
+                    ${ctaLabel} →
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td align="center"
+                  style="background:#fafafa;border-top:1px solid #f4f4f5;padding:20px 32px;">
+                  <p style="margin:0;font-size:12px;color:#a1a1aa;line-height:1.6;">
+                    You&apos;re receiving this because you just created a ToYou account.<br/>
+                    Questions? Reply to this email or visit
+                    <a href="https://www.toyoucarrentals.com"
+                      style="color:#dc2626;text-decoration:none;">
+                      toyoucarrentals.com
+                    </a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`;
+
+  return sendMail({ to: email, subject, text, html });
+}

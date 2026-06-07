@@ -27,6 +27,7 @@ type FormData = {
   // Step 2
   year: string; make: string; model: string; trim: string;
   color: string; vin: string; licensePlate: string; mileage: string;
+  seats: string; fuel: string; body: string; transmission: string;
   // Step 3
   titleStatus: string; accidentHistory: string; vehicleCondition: string;
   hasMechanicalIssues: string; mechanicalIssuesDescription: string;
@@ -56,6 +57,7 @@ const initialForm: FormData = {
   city: "", state: "", zipCode: "", isRegisteredOwner: "",
   year: "", make: "", model: "", trim: "",
   color: "", vin: "", licensePlate: "", mileage: "",
+  seats: "", fuel: "", body: "", transmission: "",
   titleStatus: "", accidentHistory: "", vehicleCondition: "",
   hasMechanicalIssues: "", mechanicalIssuesDescription: "",
   photoUrls: {}, documentUrls: {},
@@ -333,6 +335,48 @@ function Step2({ form, set }: { form: FormData; set: (k: keyof FormData, v: unkn
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextInput label="License Plate Number" value={form.licensePlate} onChange={(v) => set("licensePlate", v)} />
         <TextInput label="Current Mileage" type="number" placeholder="e.g. 42000" value={form.mileage} onChange={(v) => set("mileage", v)} />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div>
+          <FieldLabel>Seats<span className="ml-1 text-red-500">*</span></FieldLabel>
+          <select
+            value={form.seats}
+            onChange={(e) => set("seats", e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
+          >
+            <option value="">Select seats</option>
+            {[2, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+        <div>
+          <FieldLabel>Fuel Type<span className="ml-1 text-red-500">*</span></FieldLabel>
+          <select
+            value={form.fuel}
+            onChange={(e) => set("fuel", e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
+          >
+            <option value="">Select fuel</option>
+            {["Gasoline", "Diesel", "Hybrid", "Electric", "Plug-in Hybrid"].map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+        <div>
+          <FieldLabel>Body Type<span className="ml-1 text-red-500">*</span></FieldLabel>
+          <select
+            value={form.body}
+            onChange={(e) => set("body", e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/10 transition-all"
+          >
+            <option value="">Select body</option>
+            {["Sedan", "SUV", "Truck", "Coupe", "Convertible", "Van", "Hatchback", "Wagon"].map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+      </div>
+      <div>
+        <FieldLabel>Transmission<span className="ml-1 text-red-500">*</span></FieldLabel>
+        <div className="flex gap-3">
+          <RadioCard label="Automatic" selected={form.transmission === "Automatic"} onClick={() => set("transmission", "Automatic")} />
+          <RadioCard label="Manual" selected={form.transmission === "Manual"} onClick={() => set("transmission", "Manual")} />
+        </div>
       </div>
     </div>
   );
@@ -692,7 +736,7 @@ function Step9({
 function isStepValid(step: number, form: FormData): boolean {
   switch (step) {
     case 0: return !!(form.firstName && form.lastName && form.phone && form.email && form.city && form.state && form.zipCode && form.isRegisteredOwner);
-    case 1: return !!(form.year && form.make && form.model && form.color && form.vin && form.licensePlate && form.mileage);
+    case 1: return !!(form.year && form.make && form.model && form.color && form.vin && form.licensePlate && form.mileage && form.seats && form.fuel && form.body && form.transmission);
     case 2: return !!(form.titleStatus && form.accidentHistory && form.vehicleCondition && form.hasMechanicalIssues && (form.hasMechanicalIssues === "no" || form.mechanicalIssuesDescription));
     case 3: return true;
     case 4: return true;
@@ -787,6 +831,8 @@ export default function ListYourCarPage() {
           isRegisteredOwner: form.isRegisteredOwner === "yes",
           year: form.year, make: form.make, model: form.model, trim: form.trim,
           color: form.color, vin: form.vin, licensePlate: form.licensePlate, mileage: form.mileage,
+          seats: form.seats ? Number(form.seats) : undefined,
+          fuel: form.fuel, body: form.body, transmission: form.transmission,
           titleStatus: form.titleStatus, accidentHistory: form.accidentHistory,
           vehicleCondition: form.vehicleCondition,
           hasMechanicalIssues: form.hasMechanicalIssues === "yes",
